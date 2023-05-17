@@ -4,7 +4,7 @@ const yup = require('yup');
 
 const { generationID, writeFileSync } = require('../utils');
 
-const products = require('../data/products.json');
+let products = require('../data/products.json');
 
 // GET LIST
 router.get('/', function(req, res, next) {
@@ -123,7 +123,7 @@ router.post('/', function(req, res, next) {
   
     res.status(201).json({
       code: 2011,
-      message: 'Created success!!',
+      message: 'Thêm sản phẩm thành công',
       payload: newP,
     });
   })
@@ -143,11 +143,11 @@ router.patch('/:id', function(req, res, next) {
       name: yup.string().max(50).required(),
       price: yup.number().min(0, 'Giá phải lớn hơn hoặc bằng 0').required(),
       description: yup.string(),
-      supplierId: yup.number().test('validationID', 'ID sai định dạng', val => {
-        if (!val) return true;
+      // supplierId: yup.number().test('validationID', 'ID sai định dạng', val => {
+      //   if (!val) return true;
   
-        return val.toString().length === 13
-      }),
+      //   return val.toString().length === 13
+      // }),
     }),
     params: yup.object({
       id: yup.number().test('validationID', 'ID sai định dạng', val => {
@@ -157,23 +157,15 @@ router.patch('/:id', function(req, res, next) {
   });  
 
   validationSchema
-  .validate({ body: req.body }, { abortEarly: false })
+  .validate({ body: req.body, params: req.params }, { abortEarly: false })
   .then(() => {
     console.log('Validation passed');
     const { name, price, description, discount } = req.body;
     const { id } = req.params;
-  
-    const foundExists = products.find((item) => item.id.toString() !== id.toString() && item.name === name);
-  
-    if (foundExists) {
-      res.status(400).json({
-        code: 2011,
-        message: 'Sản phẩm đã tồn tại trong hệ thống',
-      });
-    }
-  
+    
+    // Kiểm tra sản phẩm có tồn tại trong hệ thống
     const checkProductExits = products.find((p) => p.id.toString() === id.toString());
-  
+
     if (!checkProductExits) {
       res.status(404).json({
         code: 4041,
@@ -181,6 +173,16 @@ router.patch('/:id', function(req, res, next) {
       });
     }
   
+    // Kiểm tra sản phẩm có trung tên với sản phẩm khác trong hệ thống
+    const foundExists = products.find((item) => item.id.toString() !== id.toString() && item.name === name);
+
+    if (foundExists) {
+      res.status(400).json({
+        code: 2011,
+        message: 'Sản phẩm đã tồn tại trong hệ thống',
+      });
+    }
+
     const productUpdate = {
       ...checkProductExits,
       name,
@@ -306,12 +308,14 @@ router.delete('/:id', function(req, res, next) {
     const { id } = req.params;
 
     const newProductList = products.filter((p) => p.id.toString() !== id.toString());
+
+    products = newProductList;
   
     writeFileSync('./data/products.json', newProductList);
   
     res.status(201).json({
       code: 2011,
-      message: 'Delete success!!',
+      message: 'Xóa sản phẩm thành công',
     });
   })
   .catch((err) => {
