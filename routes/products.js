@@ -1,329 +1,276 @@
-var express = require('express');
-var router = express.Router();
 const yup = require('yup');
+const express = require('express');
+const router = express.Router();
+const { Product, Category, Supplier } = require('../models');
+const ObjectId = require('mongodb').ObjectId;
 
-const { generationID, writeFileSync } = require('../utils');
+const {
+  validateSchema,
+  getProductsSchema,
+} = require('../validation/product');
 
-let products = require('../data/products.json');
+// Methods: POST / PATCH / GET / DELETE / PUT
 
-// GET LIST
-router.get('/', function(req, res, next) {
-  res.status(200).json({
-    code: 2001,
-    message: 'Get success!!',
-    total: products.length,
-    payload: products,
+// ------------------------------------------------------------------------------------------------
+// Get all
+router.get('/', validateSchema(getProductsSchema), async (req, res, next) => {
+  try {
+    const {
+      category,
+      sup,
+      q,
+      skip,
+      limit,
+      productName,
+      stockStart,
+      stockEnd,
+      priceStart,
+      priceEnd,
+      discountStart,
+      discountEnd,
+    } = req.query;
+    const conditionFind = {};
+
+    if (category) conditionFind.categoryId = category;
+    if (sup) conditionFind.supplierId = sup;
+    if (productName) {
+      conditionFind.name = new RegExp(`${productName}`)
+    }
+
+    if (stockStart & stockEnd) {
+      conditionFind.stock = {
+        $expr: {
+          $and: [
+            { stock: { $gte: Number(stockStart) } },
+            { stock: { $lte: Number(stockEnd) } },
+          ]
+        }
+      }
+    } else if (stockStart) {
+      conditionFind.stock = {
+        $expr: {
+          $and: [
+            { stock: { $gte: Number(stockStart) } },
+          ]
+        }
+      }
+    } else if (stockEnd) {
+      conditionFind.stock = {
+        $expr: {
+          $and: [
+            { stock: { $lte: Number(stockEnd) } },
+          ]
+        }
+      }
+    }
+
+    console.log('««««« conditionFind »»»»»', conditionFind);
+
+    let results = await Product
+    .find(conditionFind)
+    .populate('category')
+    .populate('supplier')
+    .skip(skip)
+    .limit(limit)
+    .lean({ virtuals: true });
+
+    res.json(results);
+  } catch (error) {
+    console.log('««««« error »»»»»', error);
+    res.status(500).json({ ok: false, error });
+  }
+});
+
+router.get('/list', validateSchema(getProductsSchema), async (req, res, next) => {
+  try {
+    const {
+      category,
+      sup,
+      q,
+      skip,
+      productName,
+      stockStart,
+      stockEnd,
+      priceStart,
+      priceEnd,
+      discountStart,
+      discountEnd,
+    } = req.query;
+
+    const conditionFind = {};
+
+    // conditionFind.limit = 2;
+
+    if (category) conditionFind.categoryId = category;
+    if (sup) conditionFind.supplierId = sup;
+    if (productName) {
+      conditionFind.name = new RegExp(`${productName}`)
+    }
+
+    // if (stockStart & stockEnd) {
+    //   conditionFind.stock = {
+    //     $expr: {
+    //       $and: [
+    //         { stock: { $gte: Number(stockStart) } },
+    //         { stock: { $lte: Number(stockEnd) } },
+    //       ]
+    //     }
+    //   }
+    // } else if (stockStart) {
+    //   conditionFind.stock = {
+    //     $expr: {
+    //       $and: [
+    //         { stock: { $gte: Number(stockStart) } },
+    //       ]
+    //     }
+    //   }
+    // } else if (stockEnd) {
+    //   conditionFind.stock = {
+    //     $expr: {
+    //       $and: [
+    //         { stock: { $lte: Number(stockEnd) } },
+    //       ]
+    //     }
+    //   }
+    // }
+
+    console.log('««««« conditionFind »»»»»', conditionFind);
+
+    const results = await Product
+    .find(conditionFind)
+    .populate('category')
+    .populate('supplier')
+    .skip(skip)
+    .limit(2)
+    .lean({ virtuals: true });
+
+    const totalResults = await Product
+    .countDocuments(conditionFind)
+
+    res.json({
+      payload: results,
+      total: totalResults,
+    });
+  } catch (error) {
+    console.log('««««« error »»»»»', error);
+    res.status(500).json({ ok: false, error });
+  }
+});
+
+// Get by id
+router.get('/:id', async (req, res, next) => {
+  const validationSchema = yup.object().shape({
+    params: yup.object({
+      id: yup.string().test('Validate ObjectID', '${path} is not valid ObjectID', (value) => {
+        return ObjectId.isValid(value);
+      }),
+    }),
+  });
+  
+
+  validationSchema.validate({ params: req.params }, { abortEarly: false })
+  .then(async () => {
+    const { id } = req.params;
+    console.log('««««« id »»»»»', id);
+
+    let results = await Product.findById(id).populate('category').populate('supplier').lean({ virtuals: true });
+
+    if (results) {
+      return res.send({ ok: true, result: results });
+    }
+
+    return res.send({ ok: false, message: 'Object not found' });
+  })
+  .catch((err) => {
+    return res.status(400).json({ type: err.name, errors: err.errors, message: err.message, provider: 'yup' });
   });
 });
 
-// GET DETAIL
-router.get('/:id', function(req, res, next) {
-  const { id } = req.params;
+// ------------------------------------------------------------------------------------------------
+// Create new data
+router.post('/', function (req, res, next) {
+  // Validate
+  const validationSchema = yup.object({
+    body: yup.object({
+      name: yup.string().required(),
+      price: yup.number().positive().required(),
+      discount: yup.number().positive().max(50).required(),
+      categoryId: yup
+        .string()
+        .required()
+        .test('Validate ObjectID', '${path} is not valid ObjectID', (value) => {
+          return ObjectId.isValid(value);
+        }),
+      supplierId: yup
+        .string()
+        .required()
+        .test('Validate ObjectID', '${path} is not valid ObjectID', (value) => {
+          return ObjectId.isValid(value);
+        }),
+    }),
+  });
 
+  validationSchema
+    .validate({ body: req.body }, { abortEarly: false })
+    .then(async () => {
+      const data = req.body;
+
+      // let category = await Category.findOne({ _id: data.categoryId });
+      // if (!category) return res.status(404).json({ message: 'Not found' });
+
+      // let supplier = await Supplier.findOne({ _id: data.supplierId });
+      // if (!supplier) return res.status(404).json({ message: 'Not found' });
+
+      let newItem = new Product(data);
+      await newItem.save();
+      res.send({ ok: true, message: 'Created', result: newItem });
+    })
+    .catch((err) => {
+      return res.status(400).json({ type: err.name, errors: err.errors, message: err.message, provider: 'yup' });
+    });
+});
+// ------------------------------------------------------------------------------------------------
+// Delete data
+router.delete('/:id', function (req, res, next) {
   const validationSchema = yup.object().shape({
     params: yup.object({
-      id: yup.number().test('validationID', 'ID sai định dạng', val => {
-        return val.toString().length === 13
+      id: yup.string().test('Validate ObjectID', '${path} is not valid ObjectID', (value) => {
+        return ObjectId.isValid(value);
       }),
     }),
   });
 
   validationSchema
     .validate({ params: req.params }, { abortEarly: false })
-    .then(() => {
-      console.log('Validation passed');
+    .then(async () => {
+      try {
+        const id = req.params.id;
 
-      const product = products.find((p) => p.id.toString() === id.toString());
+        let found = await Product.findByIdAndDelete(id);
 
-      if (!product) {
-        res.status(404).json({
-          code: 4041,
-          message: 'Get detail fail!!',
-        });
+        if (found) {
+          return res.send({ ok: true, result: found });
+        }
+
+        return res.status(410).send({ ok: false, message: 'Object not found' });
+      } catch (err) {
+        return res.status(500).json({ error: err });
       }
-    
-      res.status(200).json({
-        code: 2001,
-        message: 'Get detail success!!',
-        payload: product,
-      });
     })
     .catch((err) => {
-      res.status(404).json({
-        message: 'Get detail fail!!',
-        payload: err,
-      });
+      return res.status(400).json({ type: err.name, errors: err.errors, message: err.message, provider: 'yup' });
     });
 });
 
-// ADD NEW
-router.post('/', function(req, res, next) {
-  const phoneRegExp = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-
-  const validationSchema = yup.object().shape({
-    body: yup.object({
-      name: yup.string().max(50).required(),
-      price: yup.number().min(0, 'Giá phải lớn hơn hoặc bằng 0').required(),
-      description: yup.string(),
-      supplierId: yup.number().test('validationID', 'ID sai định dạng', val => {
-        if (!val) return true;
-  
-        return val.toString().length === 13
-      }),
-      // phone: yup.string().matches(phoneRegExp, 'SỐ ĐIỆN THOẠI BỊ SAI').required('Số dt không được bỏ trống'),
-      // isHasWife: yup.bool(),
-      // wifeName: yup.string().test({
-      //   message: 'Tên vợ không được để trống',
-      //   test(value) {
-      //       if (this.parent.isHasWife && !value) return false;
-    
-      //       return true;
-      //     },
-      // })
-    })
-  });  
-
-  validationSchema
-  .validate({ body: req.body }, { abortEarly: false })
-  .then(() => {
-    console.log('Validation passed');
-    const { name, price, description, discount, supplierId } = req.body;
-
-    const foundExists = products.find((item) => item.name === name);
-    
-    if (foundExists) {
-      res.status(400).json({
-        code: 2011,
-        message: 'Sản phẩm đã tồn tại trong hệ thống',
-      });
-    }
-
-    const initID = generationID();
-
-    const newProduct = {
-      id: initID,
-      name,
-      price,
-      description,
-      discount,
-      // phone,
-      // supplierId: supplierId && supplierId,
-      ...(supplierId && { supplierId }),
-    };
-
-    // if (supplierId) {
-    //   newProduct.supplierId = supplierId;
-    // }
-
-    products.push(newProduct);
-
-    const newP = products.find((p) => p.id.toString() === initID.toString());
-  
-    writeFileSync('./data/products.json', products);
-  
-    res.status(201).json({
-      code: 2011,
-      message: 'Thêm sản phẩm thành công',
-      payload: newP,
-    });
-  })
-  .catch((err) => {
-    return res.status(400).json({
-      type: err.name,
-      errors: err.errors,
-      provider: 'yup'
-    });
-  });
-});
-
-// UPDATE
-router.patch('/:id', function(req, res, next) {
-  const validationSchema = yup.object().shape({
-    body: yup.object({
-      name: yup.string().max(50).required(),
-      price: yup.number().min(0, 'Giá phải lớn hơn hoặc bằng 0').required(),
-      description: yup.string(),
-      // supplierId: yup.number().test('validationID', 'ID sai định dạng', val => {
-      //   if (!val) return true;
-  
-      //   return val.toString().length === 13
-      // }),
-    }),
-    params: yup.object({
-      id: yup.number().test('validationID', 'ID sai định dạng', val => {
-        return val.toString().length === 13
-      }),
-    }),
-  });  
-
-  validationSchema
-  .validate({ body: req.body, params: req.params }, { abortEarly: false })
-  .then(() => {
-    console.log('Validation passed');
-    const { name, price, description, discount } = req.body;
-    const { id } = req.params;
-    
-    // Kiểm tra sản phẩm có tồn tại trong hệ thống
-    const checkProductExits = products.find((p) => p.id.toString() === id.toString());
-
-    if (!checkProductExits) {
-      res.status(404).json({
-        code: 4041,
-        message: 'Not found',
-      });
-    }
-  
-    // Kiểm tra sản phẩm có trung tên với sản phẩm khác trong hệ thống
-    const foundExists = products.find((item) => item.id.toString() !== id.toString() && item.name === name);
-
-    if (foundExists) {
-      res.status(400).json({
-        code: 2011,
-        message: 'Sản phẩm đã tồn tại trong hệ thống',
-      });
-    }
-
-    const productUpdate = {
-      ...checkProductExits,
-      name,
-      price,
-      description,
-      discount,
-    }
-  
-    const newProductList = products.map((p) => {
-      if (p.id.toString() === id.toString()) {
-        return productUpdate;
-      } 
-  
-      return p;
-    })
-  
-    writeFileSync('./data/products.json', newProductList);
-  
-    res.status(201).json({
-      code: 2011,
-      message: 'Update success!!',
-      payload: productUpdate,
-    });
-  })
-  .catch((err) => {
-    return res.status(400).json({
-      type: err.name,
-      errors: err.errors,
-      provider: 'yup'
-    });
-  });
-});
-
-// UPDATE
-router.put('/:id', function(req, res, next) {
-  const validationSchema = yup.object().shape({
-    body: yup.object({
-      name: yup.string().max(50).required(),
-      price: yup.number().min(0, 'Giá phải lớn hơn hoặc bằng 0').required(),
-      description: yup.string(),
-      supplierId: yup.number().test('validationID', 'ID sai định dạng', val => {
-        if (!val) return true;
-  
-        return val.toString().length === 13
-      }),
-    }),
-    params: yup.object({
-      id: yup.number().test('validationID', 'ID sai định dạng', val => {
-        return val.toString().length === 13
-      }),
-    }),
-  });  
-
-  validationSchema
-  .validate({ body: req.body }, { abortEarly: false })
-  .then(() => {
-    console.log('Validation passed');
-    const { name, price, description, discount } = req.body;
-    const { id } = req.params;
-  
-    const foundExists = products.find((item) => item.id.toString() !== id.toString() && item.name === name);
-  
-    if (foundExists) {
-      res.status(400).json({
-        code: 2011,
-        message: 'Sản phẩm đã tồn tại trong hệ thống',
-      });
-    }
-  
-    const checkProductExits = products.find((p) => p.id.toString() === id.toString());
-  
-    if (!checkProductExits) {
-      res.status(404).json({
-        code: 4041,
-        message: 'Not found',
-      });
-    }
-  
-    const productUpdate = {
-      ...checkProductExits,
-      id: Number(id),
-    }
-  
-    const newProductList = products.map((p) => {
-      if (p.id.toString() === id.toString()) {
-        return productUpdate;
-      } 
-  
-      return p;
-    })
-  
-    writeFileSync('./data/products.json', newProductList);
-  
-    res.status(201).json({
-      code: 2011,
-      message: 'Update success!!',
-      payload: productUpdate,
-    });
-  })
-  .catch((err) => {
-    return res.status(400).json({
-      type: err.name,
-      errors: err.errors,
-      provider: 'yup'
-    });
-  });
-});
-
-// DELETE
-router.delete('/:id', function(req, res, next) {
-  const validationSchema = yup.object().shape({
-    params: yup.object({
-      id: yup.number().test('validationID', 'ID sai định dạng', val => {
-        return val.toString().length === 13
-      }),
-    }),
-  });
-
-  validationSchema
-  .validate({ params: req.params }, { abortEarly: false })
-  .then(() => {
-    console.log('Validation passed');
-    const { id } = req.params;
-
-    const newProductList = products.filter((p) => p.id.toString() !== id.toString());
-
-    products = newProductList;
-  
-    writeFileSync('./data/products.json', newProductList);
-  
-    res.status(201).json({
-      code: 2011,
-      message: 'Xóa sản phẩm thành công',
-    });
-  })
-  .catch((err) => {
-    res.status(404).json({
-      message: 'Get detail fail!!',
-      payload: err,
-    });
-  });
+router.patch('/:id', async function (req, res, next) {
+  try {
+    const id = req.params.id;
+    const data = req.body;
+    await Product.findByIdAndUpdate(id, data);
+    res.send({ ok: true, message: 'Updated' });
+  } catch (error) {
+    res.status(500).send({ ok: false, error });
+  }
 });
 
 module.exports = router;

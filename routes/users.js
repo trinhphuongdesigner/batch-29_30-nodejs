@@ -1,30 +1,16 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET users listing. */
+const data = [
+  { id: 1, name: 'admin', email: 'admin@gmail.com' },
+  { id: 2, name: 'manager', email: 'manager@gmail.com' },
+];
 
-router.get('/res', function(req, res, next) {
-  res.send('this is second');
-});
+// Methods: POST / PATCH / GET / DELETE / PUT
+// Get all
 
-router.get('/res', function(req, res, next) {
-  res.send('this is first');
-});
-
-router.post('/res', function(req, res, next) {
-  res.send('this is Post method');
-});
-
-router.put('/res', function(req, res, next) {
-  res.send('this is put method');
-});
-
-router.delete('/res', function(req, res, next) {
-  res.send('this is delete method');
-});
-
-router.patch('/res', function(req, res, next) {
-  res.send('this is patch method');
+router.get('/', function (req, res, next) {
+  res.send(data);
 });
 
 module.exports = router;
