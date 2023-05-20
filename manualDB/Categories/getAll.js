@@ -1,12 +1,10 @@
 const { default: mongoose } = require('mongoose');
-const { Category } = require('../models');
+const { Category } = require('../../models');
 
 mongoose.connect('mongodb://127.0.0.1:27017/batch-29-30-database');
 
 try {
-  const taotenphuong = '64675f4da5fb6653ed8bb38b';
-  
-  Category.findById(taotenphuong).then((result) => {
+  Category.find().then((result) => {
     console.log(result);
   });
 } catch (err) {

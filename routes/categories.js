@@ -1,139 +1,84 @@
-const yup = require('yup');
 const express = require('express');
 const router = express.Router();
-const ObjectId = require('mongodb').ObjectId;
 
 const { Category } = require('../models');
-const { validateSchema, loginSchema, categorySchema } = require('../validation/employee');
-// Methods: POST / PATCH / GET / DELETE / PUT
-// Get all
+
+// GET ALL
 router.get('/', async (req, res, next) => {
   try {
     let results = await Category.find();
     res.send(results);
   } catch (err) {
-    res.sendStatus(500);
+    return res.status(500).json({ ok: false, error: err });
   }
 });
 
-router.get('/:id', validateSchema(categorySchema),  async (req, res, next) => {
-  // Validate
+// GET DETAIL
+router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
     let found = await Category.findById(id);
 
     if (found) {
-      return res.send({ ok: true, result: found });
+      return res.send({ ok: true, payload: found });
     }
 
-    return res.send({ ok: false, message: 'Object not found' });
+    return res.status(410).send({ ok: false, message: 'Không tìm thấy' });
   } catch (err) {
-    res.status(401).json({
-      statusCode: 401,
-      message: 'Unauthorized',
-    });
+    return res.status(500).json({ ok: false, error: err });
   }
 });
 
-// router.get('/:id', async function (req, res, next) {
-//   // Validate
-//   const validationSchema = yup.object().shape({
-//     params: yup.object({
-//       id: yup.string().test('Validate ObjectID', '${path} is not valid ObjectID', (value) => {
-//         return ObjectId.isValid(value);
-//       }),
-//     }),
-//   });
-
-//   validationSchema
-//     .validate({ params: req.params }, { abortEarly: false })
-//     .then(async () => {
-//       const id = req.params.id;
-
-//       let found = await Category.findById(id);
-
-//       if (found) {
-//         return res.send({ ok: true, result: found });
-//       }
-
-//       return res.send({ ok: false, message: 'Object not found' });
-//     })
-//     .catch((err) => {
-//       return res.status(400).json({ type: err.name, errors: err.errors, message: err.message, provider: 'yup' });
-//     });
-// });
-
-// Create new data
+// POST
 router.post('/', async function (req, res, next) {
-  // Validate
-  const validationSchema = yup.object({
-    body: yup.object({
-      name: yup.string().required(),
-      description: yup.string(),
-    }),
-  });
+  try {
+    const data = req.body;
 
-  validationSchema
-    .validate({ body: req.body }, { abortEarly: false })
-    .then(async () => {
-      try {
-        const data = req.body;
-        const newItem = new Category(data);
-        let result = await newItem.save();
+    const newItem = new Category(data);
 
-        return res.send({ ok: true, message: 'Created', result });
-      } catch (err) {
-        return res.status(500).json({ error: err });
-      }
-    })
-    .catch((err) => {
-      return res.status(400).json({ type: err.name, errors: err.errors, provider: 'yup' });
-    });
+    let result = await newItem.save();
+
+    return res.send({ ok: true, message: 'Tạo thành công', payload: result });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err });
+  }
 });
 
-// ------------------------------------------------------------------------------------------------
-// Delete data
-router.delete('/:id', function (req, res, next) {
-  const validationSchema = yup.object().shape({
-    params: yup.object({
-      id: yup.string().test('Validate ObjectID', '${path} is not valid ObjectID', (value) => {
-        return ObjectId.isValid(value);
-      }),
-    }),
-  });
+// DELETE
+router.delete('/:id', async function (req, res, next) {
+  try {
+    const { id } = req.params;
 
-  validationSchema
-    .validate({ params: req.params }, { abortEarly: false })
-    .then(async () => {
-      try {
-        const id = req.params.id;
+    let found = await Category.findByIdAndDelete(id);
 
-        let found = await Category.findByIdAndDelete(id);
+    if (found) {
+      return res.send({ ok: true, payload: found });
+    }
 
-        if (found) {
-          return res.send({ ok: true, result: found });
-        }
-
-        return res.status(410).send({ ok: false, message: 'Object not found' });
-      } catch (err) {
-        return res.status(500).json({ error: err });
-      }
-    })
-    .catch((err) => {
-      return res.status(400).json({ type: err.name, errors: err.errors, message: err.message, provider: 'yup' });
-    });
+    return res.status(410).send({ ok: false, message: 'Không tìm thấy' });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err });
+  }
 });
 
+// UPDATE
 router.patch('/:id', async function (req, res, next) {
   try {
-    const id = req.params.id;
-    const patchData = req.body;
-    await Category.findByIdAndUpdate(id, patchData);
+    const { id } = req.params;
 
-    res.send({ ok: true, message: 'Updated' });
+    const updateData = req.body;
+
+    const found = await Category.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (found) {
+    return res.send({ ok: true, message: 'Cập nhật thành công', payload: found });
+    }
+
+    return res.status(410).send({ ok: false, message: 'Không tìm thấy' });
+
   } catch (error) {
-    res.status(500).send({ ok: false, error });
+    return res.status(500).json({ ok: false, error: err });
   }
 });
 
