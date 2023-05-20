@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 
 // Mongoose Datatypes:
 // https://mongoosejs.com/docs/schematypes.html
@@ -41,6 +42,16 @@ const customerSchema = new Schema(
     versionKey: false,
   },
 );
+
+productSchema.virtual('fullName').get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+// Config
+customerSchema.set('toJSON', { virtuals: true });
+customerSchema.set('toObject', { virtuals: true });
+//
+customerSchema.plugin(mongooseLeanVirtuals);
 
 const Customer = model('Customer', customerSchema);
 module.exports = Customer;
