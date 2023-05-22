@@ -11,7 +11,7 @@ const supplierSchema = new Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, 'Tên không được bỏ trống'],
       maxLength: [100, 'Tên nhà cung cấp không được vượt quá 100 ký tự'],
     },
     email: {
@@ -24,7 +24,9 @@ const supplierSchema = new Schema(
         message: `{VALUE} không phải là email hợp lệ!`,
         // message: (props) => `{props.value} is not a valid email!`,
       },
+      unique: [true, 'Tên danh mục không được trùng'],
       required: [true, 'Email không được bỏ trống'],
+      unique: [true, 'Email không được trùng'],
     },
     phoneNumber: {
       type: String,
@@ -36,6 +38,7 @@ const supplierSchema = new Schema(
         message: `{VALUE} không phải là số điện thoại hợp lệ!`,
         // message: (props) => `{props.value} is not a valid email!`,
       },
+      unique: [true, 'Số điện thoại không được trùng'],
     },
     address: {
       type: String,
