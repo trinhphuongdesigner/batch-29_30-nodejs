@@ -7,7 +7,7 @@ const categorySchema = new Schema(
       type: String,
       required: [true, 'Tên danh mục không được bỏ trống'],
       maxLength: [50, 'Tên danh mục không được vượt quá 50 ký tự'],
-      // unique: [true, 'Tên danh mục không được trùng'],
+      unique: [true, 'Tên danh mục không được trùng'],
     },
     description: {
       type: String,

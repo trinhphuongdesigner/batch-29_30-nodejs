@@ -43,7 +43,7 @@ const customerSchema = new Schema(
   },
 );
 
-productSchema.virtual('fullName').get(function () {
+customerSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 

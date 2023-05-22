@@ -4,10 +4,13 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
+const { default: mongoose } = require('mongoose');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var productsRouter = require('./routes/products');
+var categoriesRouter = require('./routes/categories');
+var suppliersRouter = require('./routes/suppliers');
+var productsFileRouter = require('./routes/products.file');
+const { CONNECTION_STRING } = require('./constants/dbSettings');
 
 var app = express();
 
@@ -27,9 +30,13 @@ app.use(
   }),
 );
 
+mongoose.set('strictQuery', false);
+mongoose.connect(CONNECTION_STRING);
+
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/products', productsRouter);
+app.use('/categories', categoriesRouter);
+app.use('/suppliers', suppliersRouter);
+app.use('/products-file', productsFileRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
