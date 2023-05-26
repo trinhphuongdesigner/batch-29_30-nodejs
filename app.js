@@ -13,9 +13,10 @@ var categoriesRouter = require('./routes/categories');
 var suppliersRouter = require('./routes/suppliers');
 var customersRouter = require('./routes/customers');
 var employeesRouter = require('./routes/employees');
-var productsRouter = require('./routes/products');
 var ordersRouter = require('./routes/orders');
 var productsFileRouter = require('./routes/products.file');
+
+var productsRouter = require('./routes/product/router');
 
 var app = express();
 
