@@ -35,7 +35,7 @@ module.exports = {
   createProductSchema: yup.object({
     body: yup.object({
       name: yup.string().required().max(50, 'Tên sản phẩm không được vượt quá 50 ký tự'),
-      description: yup.string().required().max(500, 'Mô tả sản phẩm không được vượt quá 500 ký tự'),
+      description: yup.string().max(500, 'Mô tả sản phẩm không được vượt quá 500 ký tự'),
       price: yup.number().required().min(0),
       discount: yup.number().required().min(0).max(75),
       stock: yup.number().required().min(0),

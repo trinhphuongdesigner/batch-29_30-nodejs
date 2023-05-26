@@ -14,7 +14,7 @@ var suppliersRouter = require('./routes/suppliers');
 var customersRouter = require('./routes/customers');
 var employeesRouter = require('./routes/employees');
 var ordersRouter = require('./routes/orders');
-var productsFileRouter = require('./routes/products.file');
+var productsFileRouter = require('./routes/draff.products.file');
 
 var productsRouter = require('./routes/product/router');
 

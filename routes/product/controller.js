@@ -1,5 +1,5 @@
 
-const { Product } = require('../../models');
+const { Product, Category, Supplier } = require('../../models');
 
 module.exports = {
   getProductAll: async (req, res, next) => {
@@ -38,7 +38,42 @@ module.exports = {
   createProduct: async function (req, res, next) {
     try {
       const data = req.body;
-  
+
+      const { categoryId, supplierId } = data;
+
+      // Cách 1: validate từng dữ liệu
+      // const findCategory = await Category.findById(categoryId);
+      // console.log('««««« findCategory »»»»»', findCategory);
+
+      // if (!findCategory || findCategory.isDelete) {
+      //   return res.status(404).json({ code: 404, message: "Danh mục không tồn tại" });
+      // }
+
+      // const findSupplier = await Supplier.findById(supplierId);
+      // if (!findSupplier) {
+      //   return res.status(404).json({ code: 404, message: "Nhà cung cấp không tồn tại" });
+      // }
+
+      // const findCategory = await Category.findById(categoryId);
+
+      // Cách 2: validate hàng loạt
+      const findCategory = Category.findById(categoryId);
+      const findSupplier = Supplier.findById(supplierId);
+
+      const [category, supplier] = await Promise.all([findCategory, findSupplier]);
+
+      const errors = [];
+      if (!category || category.isDelete) errors.push('Danh mục không tồn tại');
+      if (!supplier || supplier.isDelete) errors.push('Nhà cung cấp không tồn tại');
+
+      if (errors.length > 0) {
+        return res.status(404).json({
+          code: 404,
+          message: "Không tồn tại",
+          errors,
+        });
+      }
+
       const newItem = new Product(data);
   
       let result = await newItem.save();
@@ -68,9 +103,26 @@ module.exports = {
 
   updateProduct: async function (req, res, next) {
     try {
-      const { id } = req.params;
-  
+      const { id } = req.params;  
       const updateData = req.body;
+      const { categoryId, supplierId } = updateData;
+
+      const findCategory = Category.findById(categoryId);
+      const findSupplier = Supplier.findById(supplierId);
+
+      const [category, supplier] = await Promise.all([findCategory, findSupplier]);
+
+      const errors = [];
+      if (!category || category.isDelete) errors.push('Danh mục không tồn tại');
+      if (!supplier || supplier.isDelete) errors.push('Nhà cung cấp không tồn tại');
+
+      if (errors.length > 0) {
+        return res.status(404).json({
+          code: 404,
+          message: "Không tồn tại",
+          errors,
+        });
+      }
   
       const found = await Product.findByIdAndUpdate(id, updateData, {
         new: true,
