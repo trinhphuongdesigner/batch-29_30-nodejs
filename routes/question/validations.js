@@ -9,6 +9,13 @@ module.exports = {
     }),
   }),
 
+  q3a: yup.object({
+    query: yup.object({
+      price: yup.number().min(0),
+      // type: yup.string().oneOf(['eq','lt','lte','gt','gte']),
+    }),
+  }),
+
   getProductSchema: yup.object({
     params: yup.object({
       id: yup.string().test('validationID', 'ID sai định dạng', (value) => {
