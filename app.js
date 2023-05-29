@@ -9,7 +9,7 @@ const { default: mongoose } = require('mongoose');
 const { CONNECTION_STRING } = require('./constants/dbSettings');
 
 var indexRouter = require('./routes/index');
-var questionRouter = require('./routes/question');
+var questionRouter = require('./routes/question/router');
 
 var categoriesRouter = require('./routes/category/router');
 var customersRouter = require('./routes/customer/router');
@@ -40,7 +40,7 @@ mongoose.set('strictQuery', false);
 mongoose.connect(CONNECTION_STRING);
 
 app.use('/', indexRouter);
-app.use('/question', questionRouter);
+app.use('/questions', questionRouter);
 
 app.use('/categories', categoriesRouter);
 app.use('/suppliers', suppliersRouter);
