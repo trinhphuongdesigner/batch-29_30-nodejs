@@ -6,9 +6,11 @@ const {
   q1,
 } = require('./validations');
 const {
-  question1,
+  q1,
+  q1a,
 } = require('./controller');
 
-router.get('/1', validateSchema(q1), question1);
+router.get('/1', q1);
+router.get('/1', validateSchema(q1), q1a);
 
 module.exports = router;
