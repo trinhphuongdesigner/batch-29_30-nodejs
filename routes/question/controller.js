@@ -2,7 +2,7 @@
 const { Product, Category, Supplier } = require('../../models');
 
 module.exports = {
-  q1: async (req, res, next) => {
+  question1: async (req, res, next) => {
     try {
       const conditionFind = {
         discount: { $lte: 10 },
@@ -19,7 +19,7 @@ module.exports = {
     }
   },
 
-  q1a: async (req, res, next) => {
+  question1a: async (req, res, next) => {
     try {
       const { discount, type } = req.query;
 
