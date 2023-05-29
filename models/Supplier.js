@@ -24,7 +24,6 @@ const supplierSchema = new Schema(
         message: `{VALUE} không phải là email hợp lệ!`,
         // message: (props) => `{props.value} is not a valid email!`,
       },
-      unique: [true, 'Tên danh mục không được trùng'],
       required: [true, 'Email không được bỏ trống'],
       unique: [true, 'Email không được trùng'],
     },

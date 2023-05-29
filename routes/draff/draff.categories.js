@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const { Employee } = require('../models');
+const { Category } = require('../../models');
 
 // GET ALL
 router.get('/', async (req, res, next) => {
   try {
-    let results = await Employee.find();
+    let results = await Category.find();
 
     return res.send({ code: 200, payload: results });
   } catch (err) {
@@ -19,8 +19,8 @@ router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    let found = await Employee.findById(id);
-    // let found = await Employee.find({ _id: id });
+    let found = await Category.findById(id);
+    // let found = await Category.find({ _id: id });
 
     if (found) {
       return res.send({ code: 200, payload: found });
@@ -37,7 +37,7 @@ router.post('/', async function (req, res, next) {
   try {
     const data = req.body;
 
-    const newItem = new Employee(data);
+    const newItem = new Category(data);
 
     let result = await newItem.save();
 
@@ -53,7 +53,7 @@ router.delete('/:id', async function (req, res, next) {
   try {
     const { id } = req.params;
 
-    let found = await Employee.findByIdAndDelete(id);
+    let found = await Category.findByIdAndDelete(id);
 
     if (found) {
       return res.send({ code: 200, payload: found, message: 'Xóa thành công' });
@@ -72,7 +72,7 @@ router.patch('/:id', async function (req, res, next) {
 
     const updateData = req.body;
 
-    const found = await Employee.findByIdAndUpdate(id, updateData, { new: true });
+    const found = await Category.findByIdAndUpdate(id, updateData, { new: true });
 
     if (found) {
     return res.send({ code: 200, message: 'Cập nhật thành công', payload: found });
