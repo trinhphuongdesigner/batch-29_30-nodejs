@@ -153,19 +153,15 @@ module.exports = {
       // let discountedPrice = price * (100 - discount) / 100;
       const s = { $subtract: [100, '$discount'] }; // (100 - 10) s => 90
 
-      // discount = 40 ~~~ { discount: { $eq: 40 } }
-
       const m = { $multiply: ['$price', s] }; // price * 90
 
       const d = { $divide: [m, 100] }; // price * 90 / 100
 
-      // const { price } = req.query;
-
-      const conditionFind = { $expr: { $lte: [d, parseFloat(1000)] } };
+      const conditionFind = { $expr: { $lte: [d, parseFloat(40000)] } };
 
       console.log('««««« conditionFind »»»»»', conditionFind);
 
-      let results = await Product.find(conditionFind).lean() // convert data to object
+      let results = await Product.find(conditionFind).lean(); // convert data to object
 
       // const newResults = results.map((item) => {
       //   const dis = item.price * (100 - item.discount) / 100;
@@ -204,8 +200,38 @@ module.exports = {
 
       console.log('««««« conditionFind »»»»»', conditionFind);
 
-      let results = await Product.find(conditionFind).lean() // convert data to object
+      let results = await Product.find(conditionFind).lean(); // convert data to object
 
+      let total = await Product.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question3b: async (req, res, next) => {
+    try {
+      const s = { $subtract: [100, '$discount'] }; // (100 - 10) s => 90
+      const m = { $multiply: ['$price', s] }; // price * 90
+      const d = { $divide: [m, 100] }; // price * 90 / 100
+
+      // let results = await Product.aggregate([
+      //   {
+      //     $match: { $expr: { $lte: [d, parseFloat(40000)] } },
+      //   },
+      // ]);
+      // aggregate([])
+
+      let results = await Product
+        .aggregate()
+        .match({ $expr: { $lte: [d, parseFloat(40000)] } })
+      
       let total = await Product.countDocuments();
 
       return res.send({

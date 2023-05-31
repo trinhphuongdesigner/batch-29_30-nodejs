@@ -9,7 +9,7 @@ const { default: mongoose } = require('mongoose');
 const { CONNECTION_STRING } = require('./constants/dbSettings');
 
 var indexRouter = require('./routes/index');
-var questionRouter = require('./routes/question/router');
+var questionRouter = require('./routes/questions/router');
 
 var categoriesRouter = require('./routes/category/router');
 var customersRouter = require('./routes/customer/router');

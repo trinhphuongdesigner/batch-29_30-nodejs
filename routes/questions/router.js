@@ -14,6 +14,7 @@ const {
   question2b,
   question3,
   question3a,
+  question3b,
 } = require('./controller');
 
 router.get('/1', question1);
@@ -23,5 +24,6 @@ router.get('/2a', question2a);
 router.get('/2b', question2b);
 router.get('/3', question3);
 router.get('/3a', validateSchema(q3a), question3a);
+router.get('/3b', question3b);
 
 module.exports = router;
