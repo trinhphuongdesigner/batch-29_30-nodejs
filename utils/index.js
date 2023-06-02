@@ -67,15 +67,15 @@ module.exports = {
     let query = {};
   
     if (type === 'IN') {
-      const compareFromDate = { $gte: ['$shippedDate', fromDate] };
-      const compareToDate = { $lt: ['$shippedDate', toDate] };
+      const compareFromDate = { $gte: ['$createdDate', fromDate] };
+      const compareToDate = { $lt: ['$createdDate', toDate] };
     
       query = {
         $expr: { $and: [compareFromDate, compareToDate] },
       };
     } else {
-      const compareFromDate = { $lt: ['$shippedDate', fromDate] };
-      const compareToDate = { $gt: ['$shippedDate', toDate] };
+      const compareFromDate = { $lt: ['$createdDate', fromDate] };
+      const compareToDate = { $gt: ['$createdDate', toDate] };
     
       query = {
         $expr: { $or: [compareFromDate, compareToDate] },
