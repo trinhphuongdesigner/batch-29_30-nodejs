@@ -874,4 +874,50 @@ module.exports = {
       return res.status(500).json({ code: 500, error: err });
     }
   },
+
+  question23: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      const conditionFind = getQueryDateTime(fromDate, toDate);
+
+      let results = await Order.aggregate()
+        .match(conditionFind)
+        .unwind({
+          path: '$orderDetails',
+          preserveNullAndEmptyArrays: true,
+        })
+        .addFields({
+          total: {
+            $sum: {
+              $divide: [
+                {
+                  $multiply: [
+                    '$orderDetails.price',
+                    { $subtract: [100, '$orderDetails.discount'] },
+                    '$orderDetails.quantity',
+                  ],
+                },
+                100,
+              ],
+            },
+          },
+        })
+      .group({
+        _id: null,
+        total: { $sum: '$total' },
+      });
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
 };
