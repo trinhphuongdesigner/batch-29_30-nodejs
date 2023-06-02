@@ -32,7 +32,7 @@ module.exports = {
     }),
   }),
 
-  remove: yup.object({
+  removeSchema: yup.object({
     body: yup.object({
       customerId: yup.string().test('validationID', 'ID sai định dạng', (value) => {
         return ObjectId.isValid(value);

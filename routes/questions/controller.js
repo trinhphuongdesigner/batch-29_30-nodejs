@@ -433,8 +433,9 @@ module.exports = {
     try {
       const { status } = req.query;
 
-      let results = await Order.find({ status })
-        .populate({ path: 'customer', select: 'firstName lastName' })
+      let results = await Order.find({ status }) // ~ match
+        .populate({ path: 'customer', select: 'firstName lastName' }) // select để chọn lọc dữ liệu trả về
+        // .populate('customer')
         .populate('employee')
         .populate({
           path: 'orderDetails.product',
@@ -461,14 +462,14 @@ module.exports = {
       const { status } = req.query;
 
       let results = await Order.aggregate()
-        .match({ status })
+        .match({ status }) // ~ find
         .lookup({
           from: 'customers',
           localField: 'customerId',
           foreignField: '_id',
-          as: 'customer',
+          as: 'Customer',
         })
-        .unwind('customer')
+        .unwind('Customer')
         .lookup({
           from: 'employees',
           localField: 'employeeId',
@@ -479,6 +480,11 @@ module.exports = {
         .project({
           customerId: 0,
           employeeId: 0,
+          // shippedDate: 0,
+          // paymentType: 0,
+          // status: 0,
+          // orderDetails: 0,
+          // createdDate: 0,
         });
       // .lookup({
       //   from: 'products',
@@ -573,6 +579,159 @@ module.exports = {
         .lean();
 
       let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question13: async (req, res, next) => {
+    try {
+      let { address } = req.query;
+
+      let results = await Order.aggregate()
+        .lookup({
+          from: 'customers',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: 'customer'
+        })
+        .unwind('customer')
+        .match({
+          'customer.address': { $regex: new RegExp(`${address}`), $options: 'i' },
+        })
+        .project({
+          customerId: 0,
+          employeeId: 0,
+        })
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question15: async (req, res, next) => {
+    try {
+      let { supplierNames } = req.query;
+
+      let conditionFind = {
+        name: { $in: supplierNames },
+      };
+
+      let results = await Supplier.find(conditionFind)
+
+      let total = await Supplier.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question18: async (req, res, next) => {
+    try {
+      let results = await Category.aggregate()
+      // .lookup({ // so sánh
+      //   from: 'customers',
+      //   localField: 'customerId',
+      //   foreignField: '_id',
+      //   as: 'customer'
+      // })
+      .lookup({
+        from: 'products',
+        localField: '_id', // TRUY VẤN NGƯỢC!!!
+        foreignField: 'categoryId',
+        as: 'products',
+      })
+      // .unwind('products') //   sẽ dẫn dến thiếu dự liệu
+      .unwind({
+        path: '$products',
+        preserveNullAndEmptyArrays: true,
+      })
+      .group({
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        totalProduct: {
+          $sum: '$products.stock',
+        },
+      })
+      .sort({
+        totalProduct: -1,
+        name: 1,
+      });
+
+      let total = await Category.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question19: async (req, res, next) => {
+    try {
+      let results = await Supplier.aggregate()
+      .lookup({
+        from: 'products',
+        localField: '_id',
+        foreignField: 'supplierId',
+        as: 'products',
+      })
+      .unwind({
+        path: '$products',
+        preserveNullAndEmptyArrays: true,
+      })
+      .group({
+        _id: '$_id',
+        name: { $first: '$name' },
+        totalProduct: {
+          $sum: '$products.stock',
+        },
+        // count: {$cond: { if: {$gt: ['$products', 0]}, then: 1, else: 0} }
+        // count: {
+        //   $sum: {$cond: { if: {
+        //     $and : [
+        //       {$lt: ['$products.stock', 100]},
+        //       {$gt: ['$products.stock', 0]},
+        //     ]
+        //   }, then: 1, else: 0} },
+        // },
+      })
+      .sort({
+        totalProduct: -1,
+        name: 1,
+      });
+
+      let total = await Supplier.countDocuments();
 
       return res.send({
         code: 200,
