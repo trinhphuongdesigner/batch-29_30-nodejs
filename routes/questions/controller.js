@@ -1,3 +1,5 @@
+const { getQueryDateTime } = require('../../utils');
+
 const {
   Product,
   Category,
@@ -732,6 +734,47 @@ module.exports = {
       });
 
       let total = await Supplier.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question20: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      const conditionFind = getQueryDateTime(fromDate, toDate);
+
+      let results = await Order.aggregate()
+      .match({
+        ...conditionFind,
+        status: { $in: ['COMPLETE'] },
+      })
+      .unwind('orderDetails')
+      .lookup({
+        from: 'products',
+        localField: 'orderDetails.productId',
+        foreignField: '_id',
+        as: 'orderDetails.product',
+      })
+      .unwind('orderDetails.product')
+      .group({
+        _id: '$orderDetails.productId',
+        name: { $first: '$orderDetails.product.name' },
+        price: { $first: '$orderDetails.product.price' },
+        discount: { $first: '$orderDetails.product.discount' },
+        stock: { $first: '$orderDetails.product.stock' },
+        count: { $sum: 1 },
+      });
+
+      let total = await Order.countDocuments();
 
       return res.send({
         code: 200,

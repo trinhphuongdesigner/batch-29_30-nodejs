@@ -28,6 +28,7 @@ const {
   question15,
   question18,
   question19,
+  question20,
 } = require('./controller');
 
 router.get('/1', question1);
@@ -51,5 +52,6 @@ router.get('/13', question13);
 router.get('/15', question15);
 router.get('/18', question18);
 router.get('/19', question19);
+router.get('/20', question20);
 
 module.exports = router;
