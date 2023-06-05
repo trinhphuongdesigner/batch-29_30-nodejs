@@ -920,4 +920,263 @@ module.exports = {
       return res.status(500).json({ code: 500, error: err });
     }
   },
+
+  question24: async (req, res, next) => {
+    try {
+      // let { fromDate, toDate } = req.query;
+      // const conditionFind = getQueryDateTime(fromDate, toDate);
+
+      let results = await Order.aggregate()
+        // .match(conditionFind)
+        .unwind({
+          path: '$orderDetails',
+          preserveNullAndEmptyArrays: true,
+        })
+        .addFields({
+          total: {
+            $sum: {
+              $divide: [
+                {
+                  $multiply: [
+                    '$orderDetails.price',
+                    { $subtract: [100, '$orderDetails.discount'] },
+                    '$orderDetails.quantity',
+                  ],
+                },
+                100,
+              ],
+            },
+          },
+        })
+      .group({
+        _id: '$employeeId',
+        total: { $sum: '$total' },
+      })
+      .lookup({
+        from: 'employees',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'employee',
+      })
+      .unwind('employee')
+      .project({
+        totalPrice: '$total',
+        firstName: '$employee.firstName',
+        lastName: '$employee.lastName',
+        phoneNumber: '$employee.phoneNumber',
+        address: '$employee.address',
+        email : '$employee.email ',
+      })
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question25: async (req, res, next) => {
+    try {
+      let results = await Product.aggregate()
+        .lookup({
+          from: 'orders', 
+          localField: '_id',
+          foreignField: 'orderDetails.productId',
+          as: 'orders',
+        })
+        .match({
+          orders: { $size: 0 },
+        })
+        .project({
+          id: 1,
+          name: 1,
+          price: 1,
+          stock: 1,
+        })
+
+      let total = await Product.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question26: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      fromDate = new Date(fromDate);
+  
+      const tmpToDate = new Date(toDate);
+      toDate = new Date(tmpToDate.setDate(tmpToDate.getDate() + 1));
+  
+      let results = await Product.aggregate()
+      .lookup({
+        from: 'orders',
+        localField: '_id',
+        foreignField: 'orderDetails.productId',
+        as: 'orders',
+      })
+      .unwind({
+        path: '$orders',
+        preserveNullAndEmptyArrays: true,
+      })
+      .match({
+        $or: [
+          {
+            $and: [
+              { orders: { $ne: null } },
+              {
+                $or: [
+                  { 'orders.createdDate': { $lte: fromDate } },
+                  { 'orders.createdDate': { $gte: toDate } },
+                ],
+              },
+            ],
+          },
+          {
+            orders: null,
+          },
+        ],
+      })
+      .lookup({
+        from: 'suppliers',
+        localField: 'supplierId',
+        foreignField: '_id',
+        as: 'suppliers',
+      })
+      .project({
+        _id: 0,
+        suppliers: 1,
+      })
+      .unwind('suppliers')
+      .project({
+        _id: '$suppliers._id',
+        name: '$suppliers.name',
+        email: '$suppliers.email',
+        phoneNumber: '$suppliers.phoneNumber',
+        address: '$suppliers.address',
+      })
+      .group({
+        _id: '$_id',
+        name: { $first: '$name' },
+        phoneNumber: { $first: '$phoneNumber' },
+        email: { $first: '$email' },
+        address: { $first: '$address' },
+      })
+
+      let total = await Product.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question26b: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      fromDate = new Date(fromDate);
+  
+      const tmpToDate = new Date(toDate);
+      toDate = new Date(tmpToDate.setDate(tmpToDate.getDate() + 1));
+  
+      let results = await Supplier.aggregate()
+      .lookup({
+        from: 'products',
+        localField: '_id',
+        foreignField: 'supplierId',
+        as: 'products',
+      })
+      .unwind({
+        path: '$products',
+        preserveNullAndEmptyArrays: true,
+      })
+      .lookup({
+        from: 'orders',
+        localField: 'products._id',
+        foreignField: 'orderDetails.productId',
+        as: 'orders',
+      })
+      .unwind({
+        path: '$orders',
+        preserveNullAndEmptyArrays: true,
+      })
+      // .match({
+      //   $or: [
+      //     {
+      //       $and: [
+      //         { orders: { $ne: null } },
+      //         {
+      //           $or: [
+      //             { 'orders.createdDate': { $lte: fromDate } },
+      //             { 'orders.createdDate': { $gte: toDate } },
+      //           ],
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       orders: null,
+      //     },
+      //   ],
+      // })
+      // .lookup({
+      //   from: 'suppliers',
+      //   localField: 'supplierId',
+      //   foreignField: '_id',
+      //   as: 'suppliers',
+      // })
+      // .project({
+      //   _id: 0,
+      //   suppliers: 1,
+      // })
+      // .unwind('suppliers')
+      // .project({
+      //   _id: '$suppliers._id',
+      //   name: '$suppliers.name',
+      //   email: '$suppliers.email',
+      //   phoneNumber: '$suppliers.phoneNumber',
+      //   address: '$suppliers.address',
+      // })
+      // .group({
+      //   _id: '$_id',
+      //   name: { $first: '$name' },
+      //   phoneNumber: { $first: '$phoneNumber' },
+      //   email: { $first: '$email' },
+      //   address: { $first: '$address' },
+      // })
+
+      let total = await Supplier.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
 };
