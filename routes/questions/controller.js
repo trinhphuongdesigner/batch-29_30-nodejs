@@ -1179,4 +1179,78 @@ module.exports = {
     }
   },
 
+  question27: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      const conditionFind = getQueryDateTime(fromDate, toDate);
+
+      let results = await Order.aggregate()
+      .match(conditionFind)
+      .unwind('orderDetails')
+      .addFields({
+        'orderDetails.originalPrice': {
+          $divide: [
+            {
+              $multiply: [
+                '$orderDetails.price',
+                { $subtract: [100, '$orderDetails.discount'] },
+              ],
+            },
+            100,
+          ],
+        },
+      })
+      .group({
+        _id: '$employeeId',
+        // firstName: { $first: '$employees.firstName' },
+        // lastName: { $first: '$employees.lastName' },
+        // email: { $first: '$employees.email' },
+        // phoneNumber: { $first: '$employees.phoneNumber' },
+        // address: { $first: '$employees.address' },
+        // birthday: { $first: '$employees.birthday' },
+        totalSales: {
+          $sum: { $multiply: ['$orderDetails.originalPrice', '$orderDetails.quantity'] },
+        },
+      })
+      .lookup({
+        from: 'employees',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'employees',
+      })
+      .unwind('employees')
+      .project({
+        employeeId: '$_id',
+        firstName: '$employees.firstName',
+        lastName: '$employees.lastName',
+        phoneNumber: '$employees.phoneNumber',
+        address: '$employees.address',
+        email: '$employees.email',
+        totalSales: 1,
+      })
+      .sort({ totalSales: -1 })
+      .limit(3)
+      .skip(0);
+
+      // .group({
+      //   _id: '$totalSales',
+      //   employees: { $push: '$$ROOT' },
+      // })
+      // // .sort({ _id: -1 })
+
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
 };
