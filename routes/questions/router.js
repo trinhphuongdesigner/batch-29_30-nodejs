@@ -36,6 +36,7 @@ const {
   question25,
   question26,
   question26b,
+  question26c,
   question27,
 } = require('./controller');
 
@@ -68,6 +69,7 @@ router.get('/24', question24);
 router.get('/25', question25);
 router.get('/26', question26);
 router.get('/26b', question26b);
+router.get('/26c', question26c);
 router.get('/27', question27);
 
 module.exports = router;

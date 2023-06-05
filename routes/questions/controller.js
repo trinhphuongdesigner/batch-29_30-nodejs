@@ -1179,6 +1179,56 @@ module.exports = {
     }
   },
 
+  // Không lọc theo ngày tháng
+  question26c: async (req, res, next) => {
+    try {
+      let results = await Product.aggregate()
+        .lookup({
+          from: 'orders', 
+          localField: '_id',
+          foreignField: 'orderDetails.productId',
+          as: 'orders',
+        })
+        .unwind({
+          path: '$orders',
+          preserveNullAndEmptyArrays: true,
+        })
+        // thêm bộ lọc ngày tháng ở đây nếu có
+        .group({
+          _id: '$supplierId',
+          ordersArr: { "$push": "$orders" },
+        })
+        .match({
+          ordersArr: { $size: 0 },
+        })
+        .lookup({
+          from: 'suppliers',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'supplier',
+        })
+        .unwind('supplier')
+        .project({
+          name: '$supplier.name',
+          email: '$supplier.email',
+          phoneNumber: '$supplier.phoneNumber',
+          address: '$supplier.address',
+        })
+
+      let total = await Supplier.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
   question27: async (req, res, next) => {
     try {
       let { fromDate, toDate } = req.query;
@@ -1238,6 +1288,198 @@ module.exports = {
       // })
       // // .sort({ _id: -1 })
 
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question29: async (req, res, next) => {
+    try {
+      let results = await Order.distinct('orderDetails.discount')
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question30: async (req, res, next) => {
+    try {
+      let results = await Category.aggregate()
+      .lookup({
+        from: 'products',
+        localField: '_id',
+        foreignField: 'categoryId',
+        as: 'products'
+      })
+      .unwind({
+        path: '$products',
+        preserveNullAndEmptyArrays: true,
+      })
+      .lookup({
+        from: 'orders',
+        localField: 'products._id',
+        foreignField: 'orderDetails.productId',
+        as: 'orders'
+      })
+      .unwind({
+        path: '$orders',
+        preserveNullAndEmptyArrays: true,
+      })
+      .unwind({
+        path: '$orders.orderDetails',
+        preserveNullAndEmptyArrays: true,
+      })
+      .addFields({
+        originalPrice: {
+          $divide: [
+            {
+              $multiply: [
+                '$orders.orderDetails.price',
+                { $subtract: [100, '$orders.orderDetails.discount'] },
+              ],
+            },
+            100,
+          ],
+        },
+        amount: '$orders.orderDetails.quantity',
+      })
+      .group({
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        total: {
+          $sum: { $multiply: ['$originalPrice', '$amount'] },
+        },
+      })
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question33: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      const conditionFind = getQueryDateTime(fromDate, toDate);
+
+      let results = await Order.aggregate()
+      .match(conditionFind)
+      .unwind('orderDetails')
+      .addFields({
+        originalPrice: {
+          $divide: [
+            {
+              $multiply: [
+                '$orderDetails.price',
+                { $subtract: [100, '$orderDetails.discount'] },
+              ],
+            },
+            100,
+          ],
+        },
+      })
+      .group({
+        _id: '$orderDetails._id',
+        createdDate: { $first: '$createdDate' },
+        shippedDate: { $first: '$shippedDate' },
+        status: { $first: '$status' },
+        shippingAddress: { $first: '$shippingAddress' },
+        description: { $first: '$description' },
+        total: {
+          $sum: { $multiply: ['$originalPrice', '$orderDetails.quantity'] },
+        },
+      })
+      .group({
+        _id: null,
+        avg: { $avg: '$total' },
+      })
+      .project({
+        _id: 0,
+        avg: 1,
+      })
+
+      let total = await Order.countDocuments();
+
+      return res.send({
+        code: 200,
+        total,
+        totalResult: results.length,
+        payload: results,
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  question34: async (req, res, next) => {
+    try {
+      let { fromDate, toDate } = req.query;
+      const conditionFind = getQueryDateTime(fromDate, toDate);
+
+      let results = await Order.aggregate()
+      .match(conditionFind)
+      .unwind('orderDetails')
+      .addFields({
+        originalPrice: {
+          $divide: [
+            {
+              $multiply: [
+                '$orderDetails.price',
+                { $subtract: [100, '$orderDetails.discount'] },
+              ],
+            },
+            100,
+          ],
+        },
+      })
+      .group({
+        _id: '$_id',
+        createdDate: { $first: '$createdDate' },
+        shippedDate: { $first: '$shippedDate' },
+        status: { $first: '$status' },
+        shippingAddress: { $first: '$shippingAddress' },
+        description: { $first: '$description' },
+        total: {
+          $sum: { $multiply: ['$originalPrice', '$orderDetails.quantity'] },
+        },
+      })
+      .group({
+        _id: null,
+        avg: { $avg: '$total' },
+      })
+      .project({
+        _id: 0,
+        avg: 1,
+      })
 
       let total = await Order.countDocuments();
 
