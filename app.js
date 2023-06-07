@@ -5,8 +5,16 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
 const { default: mongoose } = require('mongoose');
+const passport = require('passport');
+
+require('dotenv').config()
 
 const { CONNECTION_STRING } = require('./constants/dbSettings');
+
+const {
+  passportConfig,
+  passportConfigLocal,
+} = require('./middlewares/passport');
 
 var indexRouter = require('./routes/index');
 var questionRouter = require('./routes/questions/router');
@@ -23,6 +31,9 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
+
+passport.use(passportConfig);
+passport.use(passportConfigLocal);
 
 app.use(logger('dev'));
 app.use(express.json());

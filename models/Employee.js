@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
-// const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
 // Mongoose Datatypes:
 // https://mongoosejs.com/docs/schematypes.html
@@ -53,7 +53,12 @@ const employeeSchema = new Schema(
       unique: [true, 'Email không được trùng'],
     },
     birthday: { type: Date },
-    // password: { type: String, required: [true, 'Mật khẩu không được bỏ trống'] },
+    password: {
+      type: String,
+      minLength: [6, 'Mật khẩu phải có tối thiểu 6 kí tự'],
+      maxLength: [12, 'Mật khẩu không được vượt quá 12 ký tự'],
+      required: [true, 'Mật khẩu không được bỏ trống'],
+    },
   },
   {
     versionKey: false,
@@ -65,40 +70,41 @@ employeeSchema.virtual('fullName').get(function () {
   return this.firstName + ' ' + this.lastName;
 });
 
-// employeeSchema.pre('save', async function (next) {
-//   try {
-//     // generate salt key
-//     const salt = await bcrypt.genSalt(10); // 10 ký tự
-//     // generate password = salt key + hash key
-//     const hashPass = await bcrypt.hash(this.password, salt);
-//     // override password
-//     this.password = hashPass;
-//     next();
-//   } catch (err) {
-//     next(err);
-//   }
-// });
+employeeSchema.pre('save', async function (next) {
+  try {
+    // generate salt key
+    const salt = await bcrypt.genSalt(10); // 10 ký tự ABCDEFGHIK + 123456
+    // generate password = salt key + hash key
+    const hashPass = await bcrypt.hash(this.password, salt);
+    // override password
+    this.password = hashPass;
 
-// employeeSchema.methods.isValidPass = async function(pass) {
-//   try {
-//     return await bcrypt.compare(pass, this.password);
-//   } catch (err) {
-//     throw new Error(err);
-//   }
-// };
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+employeeSchema.methods.isValidPass = async function(pass) {
+  try {
+    return await bcrypt.compare(pass, this.password);
+  } catch (err) {
+    throw new Error(err);
+  }
+};
 
 // employeeSchema.pre('save', function a(next) {
-//   const user = this;
+//   const employee = this;
 
-//   if (!user.isModified('password')) return next();
+//   if (!employee.isModified('password')) return next();
 
 //   bcrypt.genSalt(10, (err, salt) => {
 //     if (err) return next(err);
 
-//     bcrypt.hash(user.password, salt, (hashErr, hash) => {
+//     bcrypt.hash(employee.password, salt, (hashErr, hash) => {
 //       if (hashErr) return next(hashErr);
 
-//       user.password = hash;
+//       employee.password = hash;
 //       next();
 //     });
 //   });

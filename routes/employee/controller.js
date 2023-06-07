@@ -1,7 +1,37 @@
 
 const { Employee } = require('../../models');
+const encodeToken = require('../../helpers/jwtHelper');
 
 module.exports = {
+  login: async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      const employee = await Employee.findOne({ email }).select('-password').lean();
+
+      const token = encodeToken(employee);
+
+      return res.status(200).json({
+        token,
+      });
+    } catch (err) {
+      res.status(400).json({
+        statusCode: 400,
+        message: 'Looi',
+      });
+    }
+  },
+
+  getMe: async (req, res, next) => {
+    try {
+      res.status(200).json({
+        payload: req.user,
+      });
+    } catch (err) {
+      res.sendStatus(500);
+    }
+  },
+
   getAll: async (req, res, next) => {
     try {
       let results = await Employee.find()
@@ -57,7 +87,11 @@ module.exports = {
         });
       }
 
+      console.log('««««« data »»»»»', data);
+
       const newItem = new Employee(data);
+
+      console.log('««««« newItem »»»»»', newItem);
   
       let result = await newItem.save();
   

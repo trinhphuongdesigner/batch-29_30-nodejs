@@ -1303,15 +1303,37 @@ module.exports = {
     }
   },
 
+  // question29: async (req, res, next) => {
+  //   try {
+  //     let results = await Product.aggregate()
+  //     .group({
+  //       _id: '$discount',
+  //     })      
+  //     .project({
+  //       discount: '$_id',
+  //     })
+
+  //     let total = await Product.countDocuments();
+
+  //     return res.send({
+  //       code: 200,
+  //       total,
+  //       totalResult: results.length,
+  //       payload: results,
+  //     });
+  //   } catch (err) {
+  //     console.log('««««« err »»»»»', err);
+  //     return res.status(500).json({ code: 500, error: err });
+  //   }
+  // },
+
   question29: async (req, res, next) => {
     try {
-      let results = await Order.distinct('orderDetails.discount')
-
-      let total = await Order.countDocuments();
+      let results = await Product.distinct('discount')
+      // let results = await Order.distinct('orderDetails.discount')
 
       return res.send({
         code: 200,
-        total,
         totalResult: results.length,
         payload: results,
       });
@@ -1371,7 +1393,7 @@ module.exports = {
         },
       })
 
-      let total = await Order.countDocuments();
+      let total = await Category.countDocuments();
 
       return res.send({
         code: 200,
@@ -1407,23 +1429,28 @@ module.exports = {
         },
       })
       .group({
-        _id: '$orderDetails._id',
+        _id: '$_id',
         createdDate: { $first: '$createdDate' },
         shippedDate: { $first: '$shippedDate' },
         status: { $first: '$status' },
-        shippingAddress: { $first: '$shippingAddress' },
-        description: { $first: '$description' },
         total: {
           $sum: { $multiply: ['$originalPrice', '$orderDetails.quantity'] },
         },
       })
       .group({
-        _id: null,
-        avg: { $avg: '$total' },
+        _id: '$total',
+        orders: { $push: '$$ROOT' },
       })
+      .sort({ _id: 1})
+      .skip(0)
+      .limit(1)
+      .unwind('orders')
       .project({
-        _id: 0,
-        avg: 1,
+        _id: '$orders._id',
+        createdDate: '$orders.createdDate',
+        shippedDate: '$orders.shippedDate',
+        status: '$orders.status',
+        total: '$orders.total',
       })
 
       let total = await Order.countDocuments();
@@ -1494,5 +1521,4 @@ module.exports = {
       return res.status(500).json({ code: 500, error: err });
     }
   },
-
 };
