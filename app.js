@@ -53,12 +53,12 @@ mongoose.connect(CONNECTION_STRING);
 app.use('/', indexRouter);
 app.use('/questions', questionRouter);
 
-app.use('/categories', categoriesRouter);
-app.use('/suppliers', suppliersRouter);
-app.use('/customers', customersRouter);
 app.use('/employees', employeesRouter);
-app.use('/products', productsRouter);
-app.use('/orders', ordersRouter);
+app.use('/categories', passport.authenticate('jwt', { session: false }), categoriesRouter);
+app.use('/suppliers', passport.authenticate('jwt', { session: false }), suppliersRouter);
+app.use('/customers', passport.authenticate('jwt', { session: false }), customersRouter);
+app.use('/products', passport.authenticate('jwt', { session: false }), productsRouter);
+app.use('/orders', passport.authenticate('jwt', { session: false }), ordersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -30,12 +30,12 @@ router.route('/profile')
   .get(passport.authenticate('jwt', { session: false }), getMe, )
 
 router.route('/')
-  .get(getAll)
+  .get(passport.authenticate('jwt', { session: false }), getAll)
   .post(validateSchema(createSchema), create)
 
 router.route('/:id')
-  .get(validateSchema(getDetailSchema), getDetail)
-  .patch(validateSchema(editSchema), update)
-  .delete(validateSchema(getDetailSchema), remove)
+  .get(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), getDetail)
+  .patch(validateSchema(editSchema), passport.authenticate('jwt', { session: false }), update)
+  .delete(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), remove)
 
 module.exports = router;
