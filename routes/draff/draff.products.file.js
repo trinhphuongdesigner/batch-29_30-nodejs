@@ -2,9 +2,9 @@ var express = require('express');
 var router = express.Router();
 const yup = require('yup');
 
-const { generationID, writeFileSync } = require('../utils');
+const { generationID, writeFileSync } = require('../../utils');
 
-let products = require('../data/products.json');
+let products = require('../../data/products.json');
 
 // GET LIST
 router.get('/', function(req, res, next) {
