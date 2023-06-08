@@ -1,9 +1,8 @@
 const multer = require('multer');
-const { updateDocument, findDocument } = require('../helpers/MongoDbHelper');
 
 const UPLOAD_DIRECTORY = './public/uploads';
 
-var upload = multer({
+const upload = multer({
   storage: multer.diskStorage({
     contentType: multer.AUTO_CONTENT_TYPE,
     destination: function (req, file, callback) {
@@ -25,3 +24,5 @@ var upload = multer({
     },
   }),
 }).single('file');
+
+module.exports = upload;

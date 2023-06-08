@@ -1,6 +1,8 @@
+const JWT = require('jsonwebtoken');
 
 const { Employee } = require('../../models');
-const encodeToken = require('../../helpers/jwtHelper');
+const { generateToken, generateRefreshToken } = require('../../helpers/jwtHelper');
+const jwtSettings = require('../../constants/jwtSetting');
 
 module.exports = {
   login: async (req, res, next) => {
@@ -9,15 +11,49 @@ module.exports = {
 
       const employee = await Employee.findOne({ email }).select('-password').lean();
 
-      const token = encodeToken(employee);
+      const token = generateToken(employee);
+      const refreshToken = generateRefreshToken(employee._id);
 
       return res.status(200).json({
         token,
+        refreshToken,
       });
     } catch (err) {
       res.status(400).json({
         statusCode: 400,
         message: 'Looi',
+      });
+    }
+  },
+
+  checkRefreshToken: async (req, res, next) => {
+    try {
+      const { refreshToken } = req.body;
+
+      JWT.verify(refreshToken, jwtSettings.SECRET, async (err, decoded) => {
+        if (err) {
+          return res.status(401).json({
+            message: 'refreshToken is invalid',
+          });
+        } else {
+          const { id } = decoded;
+
+          const employee = await Employee.findById(id).select('-password').lean();
+    
+          if (!employee) {
+            return res.sendStatus(401);
+          }
+          
+          const token = generateToken(employee);
+
+          return res.status(200).json({ token });
+        }
+      });
+    } catch (err) {
+      console.log('««««« err »»»»»', err);
+      res.status(400).json({
+        statusCode: 400,
+        message: 'Lỗi',
       });
     }
   },

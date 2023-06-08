@@ -11,6 +11,7 @@ const {
 } = require('./validations');
 const {
   login,
+  checkRefreshToken,
   getMe,
   getAll,
   getDetail,
@@ -26,8 +27,11 @@ router.route('/login') // Đối tượng cần kiểm tra là tài khoản và 
     login,
     )
 
+router.route('/refresh-token')
+  .post(checkRefreshToken)
+
 router.route('/profile') // Đối tượng cần kiểm tra là token có hợp lệ hay không
-  .get(passport.authenticate('jwt', { session: false }), getMe, )
+  .get(passport.authenticate('jwt', { session: false }), getMe)
 
 router.route('/')
   .get(passport.authenticate('jwt', { session: false }), getAll)
