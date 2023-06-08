@@ -19,14 +19,14 @@ const {
   update,
 } = require('./controller');
 
-router.route('/login')
+router.route('/login') // Đối tượng cần kiểm tra là tài khoản và mật khẩu gửi lên
   .post(
     validateSchema(loginSchema),
     passport.authenticate('local', { session: false }),
     login,
     )
 
-router.route('/profile')
+router.route('/profile') // Đối tượng cần kiểm tra là token có hợp lệ hay không
   .get(passport.authenticate('jwt', { session: false }), getMe, )
 
 router.route('/')
