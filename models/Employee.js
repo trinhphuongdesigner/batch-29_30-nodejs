@@ -63,6 +63,10 @@ const employeeSchema = new Schema(
       type: Boolean,
       default: true,
       required: true,
+    },
+    roles: {
+      type: Array,
+      default: [],
     }
   },
   {

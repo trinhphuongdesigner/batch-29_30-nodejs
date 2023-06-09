@@ -47,11 +47,6 @@ const passportConfigLocal = new LocalStrategy(
 
 const passportConfigBasic = new BasicStrategy(async function (username, password, done) {
   try {
-    console.log('🚀 BasicStrategy');
-
-    console.log('««««« username »»»»»', username);
-    console.log('««««« password »»»»»', password);
-
     const user = await Employee.findOne({ email: username });
   
     if (!user) return done(null, false);

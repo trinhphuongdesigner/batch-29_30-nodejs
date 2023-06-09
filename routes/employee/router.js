@@ -20,6 +20,7 @@ const {
   remove,
   update,
 } = require('./controller');
+const allowRoles = require('../../middlewares/checkRole');
 
 router.route('/login') // Đối tượng cần kiểm tra là tài khoản và mật khẩu gửi lên
   .post(
@@ -38,7 +39,11 @@ router.route('/profile') // Đối tượng cần kiểm tra là token có hợp
   .get(passport.authenticate('jwt', { session: false }), getMe)
 
 router.route('/')
-  .get(passport.authenticate('jwt', { session: false }), getAll)
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    allowRoles('GET_ALL_EMPLOYEE'),
+    getAll,
+    )
   .post(validateSchema(createSchema), create)
 
 router.route('/:id')
