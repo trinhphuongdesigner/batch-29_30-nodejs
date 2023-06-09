@@ -49,6 +49,11 @@ router.route('/')
 router.route('/:id')
   .get(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), getDetail)
   .patch(validateSchema(editSchema), passport.authenticate('jwt', { session: false }), update)
-  .delete(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), remove)
+  .delete(
+    passport.authenticate('jwt', { session: false }), // CHECK TOKEN IS VALID
+    allowRoles('DELETE_EMPLOYEE'), // CHECK USER HAS ROLE
+    validateSchema(getDetailSchema), // CHECK PARAMS
+    remove, // HANDLE DELETE
+  )
 
 module.exports = router;
