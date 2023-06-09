@@ -14,6 +14,7 @@ const { CONNECTION_STRING } = require('./constants/dbSettings');
 const {
   passportConfig,
   passportConfigLocal,
+  passportConfigBasic,
 } = require('./middlewares/passport');
 
 var indexRouter = require('./routes/index');
@@ -34,6 +35,7 @@ app.set('view engine', 'jade');
 
 passport.use(passportConfig);
 passport.use(passportConfigLocal);
+passport.use(passportConfigBasic);
 
 app.use(logger('dev'));
 app.use(express.json());

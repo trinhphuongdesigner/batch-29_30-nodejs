@@ -36,17 +36,17 @@ module.exports = {
             message: 'refreshToken is invalid',
           });
         } else {
+          console.log('««««« decoded »»»»»', decoded);
           const { id } = decoded;
 
           const employee = await Employee.findById(id).select('-password').lean();
-    
-          if (!employee) {
-            return res.sendStatus(401);
-          }
-          
-          const token = generateToken(employee);
 
-          return res.status(200).json({ token });
+          if (employee && employee.isActive) {
+            const token = generateToken(employee);
+            
+            return res.status(200).json({ token });
+          }
+          return res.sendStatus(401);
         }
       });
     } catch (err) {
@@ -55,6 +55,21 @@ module.exports = {
         statusCode: 400,
         message: 'Lỗi',
       });
+    }
+  },
+
+  basic: async (req, res, next) => {
+    try {
+      const employee = await Employee.findById(req.user._id).select('-password').lean();
+      const token = generateToken(employee);
+      const refreshToken = generateRefreshToken(employee._id);
+
+      res.json({
+        token,
+        refreshToken,
+      });
+    } catch (err) {
+      res.sendStatus(400);
     }
   },
 
@@ -71,23 +86,23 @@ module.exports = {
   getAll: async (req, res, next) => {
     try {
       let results = await Employee.find()
-  
+
       return res.send({ code: 200, payload: results });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }
   },
-  
+
   getDetail: async (req, res, next) => {
     try {
       const { id } = req.params;
-  
+
       let found = await Employee.findById(id)
-  
+
       if (found) {
         return res.send({ code: 200, payload: found });
       }
-  
+
       return res.status(410).send({ code: 404, message: 'Không tìm thấy' });
     } catch (err) {
       res.status(404).json({
@@ -128,9 +143,9 @@ module.exports = {
       const newItem = new Employee(data);
 
       console.log('««««« newItem »»»»»', newItem);
-  
+
       let result = await newItem.save();
-  
+
       return res.send({ code: 200, message: 'Tạo thành công', payload: result });
     } catch (err) {
       console.log('««««« err »»»»»', err);
@@ -141,13 +156,13 @@ module.exports = {
   remove: async function (req, res, next) {
     try {
       const { id } = req.params;
-  
+
       let found = await Employee.findByIdAndDelete(id);
-  
+
       if (found) {
         return res.send({ code: 200, payload: found, message: 'Xóa thành công' });
       }
-  
+
       return res.status(410).send({ code: 404, message: 'Không tìm thấy' });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
@@ -156,9 +171,9 @@ module.exports = {
 
   update: async function (req, res, next) {
     try {
-      const { id } = req.params;  
+      const { id } = req.params;
       const updateData = req.body;
-      
+
       const { email, phoneNumber, address } = updateData;
 
       const getEmailExits = Employee.find({ email });
@@ -184,7 +199,7 @@ module.exports = {
       const found = await Employee.findByIdAndUpdate(id, updateData, {
         new: true,
       });
-  
+
       if (found) {
         return res.send({
           code: 200,
@@ -192,7 +207,7 @@ module.exports = {
           payload: found,
         });
       }
-  
+
       return res.status(404).send({ code: 404, message: 'Không tìm thấy' });
     } catch (error) {
       return res.status(500).json({ code: 500, error: err });

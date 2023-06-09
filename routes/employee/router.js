@@ -12,6 +12,7 @@ const {
 const {
   login,
   checkRefreshToken,
+  basic,
   getMe,
   getAll,
   getDetail,
@@ -29,6 +30,9 @@ router.route('/login') // Đối tượng cần kiểm tra là tài khoản và 
 
 router.route('/refresh-token')
   .post(checkRefreshToken)
+
+router.route('/basic')
+  .get(passport.authenticate('basic', { session: false }), basic)
 
 router.route('/profile') // Đối tượng cần kiểm tra là token có hợp lệ hay không
   .get(passport.authenticate('jwt', { session: false }), getMe)
