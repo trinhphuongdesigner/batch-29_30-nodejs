@@ -50,7 +50,6 @@ module.exports = {
         }
       });
     } catch (err) {
-      console.log('««««« err »»»»»', err);
       res.status(400).json({
         statusCode: 400,
         message: 'Lỗi',
