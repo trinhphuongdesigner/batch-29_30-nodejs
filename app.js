@@ -26,7 +26,7 @@ var employeesRouter = require('./routes/employee/router');
 var ordersRouter = require('./routes/order/router');
 var productsRouter = require('./routes/product/router');
 var suppliersRouter = require('./routes/supplier/router');
-var mediaRouter = require('./routes/upload');
+var mediaRouter = require('./routes/media/router');
 
 var app = express();
 
