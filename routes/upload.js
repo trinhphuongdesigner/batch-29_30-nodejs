@@ -1,40 +1,16 @@
-const fs = require('fs');
-const path = require('path');
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+
 // MULTER UPLOAD
-// const multer = require('multer');
 const upload = require('../middlewares/multer');
 const {
   updateDocument,
   findDocument,
-  toSafeFileName,
   insertDocument,
   insertDocuments,
 } = require('../helpers/MongoDbHelper');
-
-// const UPLOAD_DIRECTORY = './public/uploads';
-
-// const upload = multer({
-//   storage: multer.diskStorage({
-//     contentType: multer.AUTO_CONTENT_TYPE,
-//     destination: function (req, file, callback) {
-//       // const { id, collectionName } = req.params;
-
-//       const PATH = `${UPLOAD_DIRECTORY}/media/${file.fieldname}`;
-//       // console.log('PATH', PATH);
-//       if (!fs.existsSync(PATH)) {
-//         // Create a directory
-//         fs.mkdirSync(PATH, { recursive: true });
-//       }
-//       callback(null, PATH);
-//     },
-//     filename: function (req, file, callback) {
-//       const safeFileName = toSafeFileName(file.originalname);
-//       callback(null, safeFileName);
-//     },
-//   }),
-// });
+const { Media } = require('../models');
 
 router.post('/upload-single', (req, res) =>
   upload.single('file')(req, res, async (err) => {
@@ -44,16 +20,27 @@ router.post('/upload-single', (req, res) =>
       } else if (err) {
         res.status(500).json({ type: 'UnknownError', err: err });
       } else {
-        const imageUrl = `/uploads/media/${req.file.filename}`;
+        console.log('««««« file »»»»»', req.file);
+
         const name = req.file.filename;
+        const employeeId = req.user._id;
+
+        console.log('««««« req.user »»»»»', req.user);
+        const imageUrl = `/uploads/media/${name}`;
 
         const response = await insertDocument(
-          { location: imageUrl, name },
+          { location: imageUrl, name, employeeId },
           'Media',
         );
-        res.status(200).json({ ok: true, payload: response });
+        res.status(200).json({ 
+          message: 'Tải lên thành công',
+          payload: response.result,
+        });
       }
     } catch (error) {
+      console.log('««««« error »»»»»', error);
+      console.log('««««« co chay vo day ma ko hieu sao loi »»»»»');
+
       res.status(500).json({ ok: false, error });
     }
   }),
@@ -68,18 +55,26 @@ router.post('/upload-multiple', (req, res) =>
         res.status(500).json({ type: 'UnknownError', err: err });
       } else {
         const files = req.files;
+        const employeeId = req.user._id;
 
         const dataInsert = files.reduce((prev, nextP) => {
-          prev.push({ name: nextP.filename, location: nextP.path });
+          prev.push({
+            name: nextP.filename,
+            location: nextP.path,
+            employeeId,
+          });
           return prev;
         }, []);
 
         const response = await insertDocuments(dataInsert, 'Media');
 
-        res.status(200).json({ ok: true, payload: response });
+        res.status(200).json({
+          message: "Tải lên nhiều file được rồi đó",
+          payload: response,
+        });
       }
     } catch (error) {
-      res.status(500).json({ ok: false, error });
+      res.status(500).json({ message: "Có lỗi sảy ra", error });
     }
   }),
 );
@@ -97,11 +92,17 @@ router.post('/upload-multiple', (req, res) =>
 //   res.status(200).json({ ok: true, payload: found });
 // });
 
-router.post('/media/update/:id', async (req, res) => {
+router.post('/update/:id', async (req, res) => {
   const { id } = req.params;
 
   const found = await findDocument(id, 'Media');
-  if (!found) res.status(410).json({ message: `${collectionName} with id ${id} not found` });
+
+  const found1 = await Media.findById(id)
+
+  console.log('««««« found »»»»»', found);
+  console.log('««««« found1 »»»»»', found1);
+
+  if (!found) res.status(410).json({ message: `Media with id ${id} not found` });
 
   upload.single('file')(req, res, async (err) => {
     try {
@@ -112,12 +113,15 @@ router.post('/media/update/:id', async (req, res) => {
       } else {
         const imageUrl = `/uploads/media/${req.file.filename}`;
         const name = req.file.filename;
+        const employeeId = req.user._id;
 
+        // updateOne | findByIdAndUpdate
         const response = await updateDocument(
           { _id: id },
           {
             location: imageUrl,
             name,
+            employeeId,
           },
           'Media',
         );

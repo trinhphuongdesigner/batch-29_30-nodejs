@@ -210,6 +210,7 @@ function findDocuments({ query = null, sort = null, limit = 50, aggregate = [], 
 
 function toSafeFileName(fileName) {
   const fileInfo = path.parse(fileName);
+
   const safeFileName = fileInfo.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() + fileInfo.ext;
   return `${Date.now()}-${safeFileName}`;
 }
