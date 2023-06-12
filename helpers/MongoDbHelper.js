@@ -6,8 +6,6 @@ const mongoose = require('mongoose');
 const path = require('path')
 
 // INSERT: Thêm mới (một)
-// insertDocument({ name: 'Peter', email: 'peter@gmail.com' }, 'employees').then((result) => {}).catch(err => {});
-
 function insertDocument(data, collectionName) {
   return new Promise((resolve, reject) => {
     mongoose.model(collectionName)
@@ -212,6 +210,7 @@ function findDocuments({ query = null, sort = null, limit = 50, aggregate = [], 
 
 function toSafeFileName(fileName) {
   const fileInfo = path.parse(fileName);
+
   const safeFileName = fileInfo.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() + fileInfo.ext;
   return `${Date.now()}-${safeFileName}`;
 }

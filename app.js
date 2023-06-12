@@ -14,6 +14,7 @@ const { CONNECTION_STRING } = require('./constants/dbSettings');
 const {
   passportConfig,
   passportConfigLocal,
+  passportConfigBasic,
 } = require('./middlewares/passport');
 
 var indexRouter = require('./routes/index');
@@ -25,6 +26,7 @@ var employeesRouter = require('./routes/employee/router');
 var ordersRouter = require('./routes/order/router');
 var productsRouter = require('./routes/product/router');
 var suppliersRouter = require('./routes/supplier/router');
+var mediaRouter = require('./routes/media/router');
 
 var app = express();
 
@@ -34,6 +36,7 @@ app.set('view engine', 'jade');
 
 passport.use(passportConfig);
 passport.use(passportConfigLocal);
+passport.use(passportConfigBasic);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -59,6 +62,7 @@ app.use('/suppliers', passport.authenticate('jwt', { session: false }), supplier
 app.use('/customers', passport.authenticate('jwt', { session: false }), customersRouter);
 app.use('/products', passport.authenticate('jwt', { session: false }), productsRouter);
 app.use('/orders', passport.authenticate('jwt', { session: false }), ordersRouter);
+app.use('/media', passport.authenticate('jwt', { session: false }), mediaRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

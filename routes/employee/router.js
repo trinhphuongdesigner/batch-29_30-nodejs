@@ -11,6 +11,8 @@ const {
 } = require('./validations');
 const {
   login,
+  checkRefreshToken,
+  basic,
   getMe,
   getAll,
   getDetail,
@@ -18,24 +20,40 @@ const {
   remove,
   update,
 } = require('./controller');
+const allowRoles = require('../../middlewares/checkRole');
 
-router.route('/login')
+router.route('/login') // Đối tượng cần kiểm tra là tài khoản và mật khẩu gửi lên
   .post(
     validateSchema(loginSchema),
     passport.authenticate('local', { session: false }),
     login,
     )
 
-router.route('/profile')
-  .get(passport.authenticate('jwt', { session: false }), getMe, )
+router.route('/refresh-token')
+  .post(checkRefreshToken)
+
+router.route('/basic')
+  .get(passport.authenticate('basic', { session: false }), basic)
+
+router.route('/profile') // Đối tượng cần kiểm tra là token có hợp lệ hay không
+  .get(passport.authenticate('jwt', { session: false }), getMe)
 
 router.route('/')
-  .get(passport.authenticate('jwt', { session: false }), getAll)
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    allowRoles('GET_ALL_EMPLOYEE'),
+    getAll,
+    )
   .post(validateSchema(createSchema), create)
 
 router.route('/:id')
   .get(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), getDetail)
   .patch(validateSchema(editSchema), passport.authenticate('jwt', { session: false }), update)
-  .delete(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), remove)
+  .delete(
+    passport.authenticate('jwt', { session: false }), // CHECK TOKEN IS VALID
+    allowRoles('DELETE_EMPLOYEE'), // CHECK USER HAS ROLE
+    validateSchema(getDetailSchema), // CHECK PARAMS
+    remove, // HANDLE DELETE
+  )
 
 module.exports = router;
