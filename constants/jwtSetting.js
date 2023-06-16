@@ -1,3 +1,4 @@
 module.exports = {
-  SECRET: process.env.SECRET,
+  ADMIN_SECRET: process.env.ADMIN_SECRET,
+  USER_SECRET: process.env.USER_SECRET,
 };
