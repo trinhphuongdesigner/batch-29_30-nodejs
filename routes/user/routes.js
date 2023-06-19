@@ -6,7 +6,7 @@ const passport = require('passport');
 const {
   passportConfigUser,
   passportConfigLocalUser,
-} = require('../../middleWares/passportUser');
+} = require('../../middle-wares/passportUser');
 
 passport.use('jwtUser', passportConfigUser);
 passport.use('localUser', passportConfigLocalUser);

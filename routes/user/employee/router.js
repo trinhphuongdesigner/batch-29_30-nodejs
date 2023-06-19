@@ -20,7 +20,7 @@ const {
   remove,
   update,
 } = require('./controller');
-const allowRoles = require('../../../middleWares/checkRole');
+const allowRoles = require('../../../middle-wares/checkRole');
 
 router.route('/login') // Đối tượng cần kiểm tra là tài khoản và mật khẩu gửi lên
   .post(

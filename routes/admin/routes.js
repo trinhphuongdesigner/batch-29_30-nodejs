@@ -6,7 +6,7 @@ const passport = require('passport');
 const {
   passportConfigAdmin,
   passportConfigLocalAdmin,
-} = require('../../middleWares/passportAdmin');
+} = require('../../middle-wares/passportAdmin');
 
 passport.use('jwtAdmin', passportConfigAdmin);
 passport.use('localAdmin', passportConfigLocalAdmin);

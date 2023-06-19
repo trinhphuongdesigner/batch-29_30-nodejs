@@ -20,12 +20,12 @@ const {
   remove,
   update,
 } = require('./controller');
-const allowRoles = require('../../../middleWares/checkRole');
+const allowRoles = require('../../../middle-wares/checkRole');
 
 const {
   passportConfigAdmin,
   passportConfigLocalAdmin,
-} = require('../../../middleWares/passportAdmin');
+} = require('../../../middle-wares/passportAdmin');
 
 passport.use(passportConfigAdmin);
 passport.use(passportConfigLocalAdmin);
