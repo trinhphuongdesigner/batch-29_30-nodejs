@@ -4,10 +4,12 @@ const router = express.Router();
 const passport = require('passport');
 
 const {
-  passportConfig,
-  passportConfigLocal,
-  passportConfigBasic,
+  passportConfigAdmin,
+  passportConfigLocalAdmin,
 } = require('../../middleWares/passportAdmin');
+
+passport.use('jwtAdmin', passportConfigAdmin);
+passport.use('localAdmin', passportConfigLocalAdmin);
 
 const categoriesRouter = require('./category/router');
 const customersRouter = require('./customer/router');
@@ -16,17 +18,11 @@ const ordersRouter = require('./order/router');
 const productsRouter = require('./product/router');
 const suppliersRouter = require('./supplier/router');
 
-passport.use(passportConfig);
-passport.use(passportConfigLocal);
-passport.use(passportConfigBasic);
-
 router.use('/employees', employeesRouter);
-router.use('/categories', categoriesRouter);
-// router.use('/categories', passport.authenticate('jwt', { session: false }), categoriesRouter);
-router.use('/suppliers', passport.authenticate('jwt', { session: false }), suppliersRouter);
-router.use('/customers', passport.authenticate('jwt', { session: false }), customersRouter);
-// router.use('/products', passport.authenticate('jwt', { session: false }), productsRouter);
-router.use('/products', productsRouter);
-router.use('/orders', passport.authenticate('jwt', { session: false }), ordersRouter);
+router.use('/categories', passport.authenticate('jwtAdmin', { session: false }), categoriesRouter);
+router.use('/suppliers', passport.authenticate('jwtAdmin', { session: false }), suppliersRouter);
+router.use('/customers', passport.authenticate('jwtAdmin', { session: false }), customersRouter);
+router.use('/products', passport.authenticate('jwtAdmin', { session: false }), productsRouter);
+router.use('/orders', passport.authenticate('jwtAdmin', { session: false }), ordersRouter);
 
 module.exports = router;

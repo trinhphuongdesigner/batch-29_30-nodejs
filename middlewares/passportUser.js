@@ -6,12 +6,13 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const jwtSettings = require('../constants/jwtSetting');
 const { Employee } = require('../models');
 
-const passportConfig = new JwtStrategy(
+const passportConfigUser = new JwtStrategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken('Authorization'),
     secretOrKey: jwtSettings.USER_SECRET,
   },
   async (payload, done) => {
+    console.log('««««« user »»»»»');
     try {
       const user = await Employee.findById(payload._id).select('-password');
 
@@ -24,12 +25,13 @@ const passportConfig = new JwtStrategy(
   },
 );
 
-const passportConfigLocal = new LocalStrategy(
+const passportConfigLocalUser = new LocalStrategy(
   {
     usernameField: 'email',
   },
   async (email, password, done) => {
     try {
+      console.log('««««« user »»»»»');
       const user = await Employee.findOne({ email });
 
       if (!user) return done(null, false);
@@ -45,24 +47,7 @@ const passportConfigLocal = new LocalStrategy(
   },
 );
 
-const passportConfigBasic = new BasicStrategy(async function (username, password, done) {
-  try {
-    const user = await Employee.findOne({ email: username });
-  
-    if (!user) return done(null, false);
-  
-    const isCorrectPass = await user.isValidPass(password);
-  
-    if (!isCorrectPass) return done(null, false);
-  
-    return done(null, user);
-  } catch (error) {
-    done(error, false);
-  }
-});
-
 module.exports = {
-  passportConfig,
-  passportConfigLocal,
-  passportConfigBasic,
+  passportConfigUser,
+  passportConfigLocalUser,
 };

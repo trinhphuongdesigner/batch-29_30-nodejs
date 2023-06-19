@@ -30,7 +30,7 @@ module.exports = {
     try {
       const { refreshToken } = req.body;
 
-      JWT.verify(refreshToken, jwtSettings.ADMIN_SECRET, async (err, decoded) => {
+      JWT.verify(refreshToken, jwtSettings.USER_SECRET, async (err, decoded) => {
         if (err) {
           return res.status(401).json({
             message: 'refreshToken is invalid',

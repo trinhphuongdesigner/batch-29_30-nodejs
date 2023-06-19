@@ -2,15 +2,18 @@ const JWT = require('jsonwebtoken');
 
 const generateToken = (user, secret) => {
   const expiresIn = '3d';
-  const algorithm = 'HS256'; 
+  const algorithm = 'HS256';
 
-  return JWT.sign({
-    iat: Math.floor(Date.now() / 1000),
-    ...user,
-    algorithm,
-  }, secret, {
-    expiresIn,
-  })
+  return JWT.sign(
+    {
+      iat: Math.floor(Date.now() / 1000),
+      ...user,
+      algorithm,
+    },
+    secret,
+    {
+      expiresIn,
+    })
 };
 
 const generateRefreshToken = (id, secret) => {

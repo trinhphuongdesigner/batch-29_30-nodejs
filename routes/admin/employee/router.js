@@ -22,35 +22,40 @@ const {
 } = require('./controller');
 const allowRoles = require('../../../middleWares/checkRole');
 
+const {
+  passportConfigAdmin,
+  passportConfigLocalAdmin,
+} = require('../../../middleWares/passportAdmin');
+
+passport.use(passportConfigAdmin);
+passport.use(passportConfigLocalAdmin);
+
 router.route('/login') // Đối tượng cần kiểm tra là tài khoản và mật khẩu gửi lên
   .post(
     validateSchema(loginSchema),
-    passport.authenticate('local', { session: false }),
+    passport.authenticate('localAdmin', { session: false }),
     login,
     )
 
 router.route('/refresh-token')
   .post(checkRefreshToken)
 
-router.route('/basic')
-  .get(passport.authenticate('basic', { session: false }), basic)
-
 router.route('/profile') // Đối tượng cần kiểm tra là token có hợp lệ hay không
-  .get(passport.authenticate('jwt', { session: false }), getMe)
+  .get(passport.authenticate('jwtAdmin', { session: false }), getMe)
 
 router.route('/')
   .get(
-    passport.authenticate('jwt', { session: false }),
-    allowRoles('GET_ALL_EMPLOYEE'),
+    passport.authenticate('jwtAdmin', { session: false }),
+    // allowRoles('GET_ALL_EMPLOYEE'),
     getAll,
     )
   .post(validateSchema(createSchema), create)
 
 router.route('/:id')
-  .get(validateSchema(getDetailSchema), passport.authenticate('jwt', { session: false }), getDetail)
-  .patch(validateSchema(editSchema), passport.authenticate('jwt', { session: false }), update)
+  .get(validateSchema(getDetailSchema), passport.authenticate('jwtAdmin', { session: false }), getDetail)
+  .patch(validateSchema(editSchema), passport.authenticate('jwtAdmin', { session: false }), update)
   .delete(
-    passport.authenticate('jwt', { session: false }), // CHECK TOKEN IS VALID
+    passport.authenticate('jwtAdmin', { session: false }), // CHECK TOKEN IS VALID
     allowRoles('DELETE_EMPLOYEE'), // CHECK USER HAS ROLE
     validateSchema(getDetailSchema), // CHECK PARAMS
     remove, // HANDLE DELETE
