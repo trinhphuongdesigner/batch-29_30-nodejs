@@ -66,11 +66,13 @@ module.exports = {
           return ObjectId.isValid(value);
         }),
 
-      employeeId: yup
-        .string()
-        .test('validationEmployeeID', 'ID sai định dạng', (value) => {
-          return ObjectId.isValid(value);
-        }),
+      // employeeId: yup
+      //   .string()
+      //   .test('validationEmployeeID', 'ID sai định dạng', (value) => {
+      //     if (!value) return true;
+
+      //     return ObjectId.isValid(value);
+      //   }),
 
       orderDetails: yup.array().of(
         yup.object().shape({

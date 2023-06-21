@@ -16,12 +16,10 @@ const customersRouter = require('./customer/router');
 const employeesRouter = require('./employee/router');
 const ordersRouter = require('./order/router');
 const productsRouter = require('./product/router');
-const suppliersRouter = require('./supplier/router');
 
 router.use('/employees', employeesRouter);
 router.use('/categories', categoriesRouter);
 // router.use('/categories', passport.authenticate('jwtUser', { session: false }), categoriesRouter);
-router.use('/suppliers', passport.authenticate('jwtUser', { session: false }), suppliersRouter);
 router.use('/customers', passport.authenticate('jwtUser', { session: false }), customersRouter);
 // router.use('/products', passport.authenticate('jwtUser', { session: false }), productsRouter);
 router.use('/products', productsRouter);

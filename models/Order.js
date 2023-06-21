@@ -91,7 +91,7 @@ const orderSchema = new Schema(
     },
 
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true },
-    employeeId: { type: Schema.Types.ObjectId, ref: 'Employee', required: true },
+    employeeId: { type: Schema.Types.ObjectId, ref: 'Employee' },
 
     // Array
     orderDetails: [orderDetailSchema],

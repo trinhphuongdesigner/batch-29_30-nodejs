@@ -106,17 +106,19 @@ module.exports = {
       const { customerId, productId, quantity } = req.body;
       // const { _id: customerId } = req.user;
 
-      const getCustomer = Customer.findById(customerId);
+      // const getCustomer = Customer.findById(customerId);
       const getProduct = Product.findById(productId);
 
-      const [customer, foundProduct] = await Promise.all([
-        getCustomer,
+      const [
+        // customer,
+        foundProduct] = await Promise.all([
+        // getCustomer,
         getProduct,
       ]);
 
       const errors = [];
-      if (!customer || customer.isDelete)
-        errors.push("Khách hàng không tồn tại");
+      // if (!customer || customer.isDelete)
+      //   errors.push("Khách hàng không tồn tại");
       if (!foundProduct || foundProduct.isDelete)
         errors.push("Sản phẩm không tồn tại");
 
@@ -204,7 +206,7 @@ module.exports = {
 
   remove: async function (req, res, next) {
     try {
-      const { customerId, productId } = req.body;
+      const { productId } = req.body;
 
       let cart = await Cart.findOne({ customerId });
 

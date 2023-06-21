@@ -35,21 +35,21 @@ module.exports = {
     try {
       const data = req.body;
 
-      const { customerId, employeeId, orderDetails } = data;
+      const { customerId, orderDetails } = data;
 
       const getCustomer = Customer.findById(customerId);
-      const getEmployee = Employee.findById(employeeId);
+      // const getEmployee = Employee.findById(employeeId);
 
-      const [customer, employee] = await Promise.all([
+      const [customer] = await Promise.all([
         getCustomer,
-        getEmployee,
+        // getEmployee,
       ]);
 
       const errors = [];
       if (!customer || customer.isDelete)
         errors.push('Khách hàng không tồn tại');
-      if (!employee || employee.isDelete)
-        errors.push('Nhân viên không tồn tại');
+      // if (!employee || employee.isDelete)
+      //   errors.push('Nhân viên không tồn tại');
 
       await asyncForEach(orderDetails, async (item) => {
         const product = await Product.findById(item.productId);

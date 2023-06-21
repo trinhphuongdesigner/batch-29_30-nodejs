@@ -17,7 +17,7 @@ router.route('/')
   .post(validateSchema(createSchema), create)
   .delete(validateSchema(removeSchema), remove)
 
-router.route('/:id')
+router.route('/:id') // xem chi tiết giỏ hàng 
   .get(validateSchema(getDetailSchema), getDetail)
 
 module.exports = router;

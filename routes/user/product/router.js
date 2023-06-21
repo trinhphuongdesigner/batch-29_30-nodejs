@@ -8,34 +8,12 @@ const {
 } = require('./validations');
 const {
   getProductAll,
+  // getProductList, // thêm bộ lọc và tìm kiếm
   getProductDetail,
-  createProduct,
-  deleteProduct,
-  updateProduct,
 } = require('./controller');
 
-router.route('/')
-  .get(getProductAll)
-  .post(validateSchema(createProductSchema), createProduct)
+router.route('/').get(getProductAll)
 
-router.route('/:id')
-  .get(validateSchema(getProductSchema), getProductDetail)
-  .patch(validateSchema(createProductSchema), updateProduct)
-  .delete(validateSchema(getProductSchema), deleteProduct)
-
-// GET ALL
-// router.get('/', getProductAll);
-
-// GET DETAIL
-// router.get('/:id', validateSchema(getProductSchema), getProductDetail);
-
-// POST
-// router.post('/', validateSchema(createProductSchema), createProduct);
-
-// DELETE
-// router.delete('/:id', validateSchema(getProductSchema), deleteProduct);
-
-// UPDATE
-// router.patch('/:id', validateSchema(createProductSchema), updateProduct);
+router.route('/:id').get(validateSchema(getProductSchema), getProductDetail)
 
 module.exports = router;
