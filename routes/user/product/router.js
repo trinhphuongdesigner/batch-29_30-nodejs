@@ -4,7 +4,6 @@ const router = express.Router();
 const { validateSchema } = require('../../../utils');
 const {
   getProductSchema,
-  createProductSchema,
 } = require('./validations');
 const {
   getProductAll,

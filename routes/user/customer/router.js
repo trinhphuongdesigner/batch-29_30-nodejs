@@ -10,17 +10,19 @@ const {
   getAll,
   getDetail,
   create,
-  remove,
-  update,
+  removeMe,
+  updateMe,
 } = require('./controller');
 
-router.route('/')
-  .get(getAll)
+router.route('/register')
   .post(validateSchema(createSchema), create)
+
+router.route('/profile')
+  .post(validateSchema(createSchema), passport.authenticate('jwtUser', { session: false }), getMe)
+  .patch(validateSchema(createSchema), passport.authenticate('jwtUser', { session: false }), updateMe)
+  .delete(validateSchema(getDetailSchema), passport.authenticate('jwtUser', { session: false }), removeMe)
 
 router.route('/:id')
   .get(validateSchema(getDetailSchema), getDetail)
-  .patch(validateSchema(createSchema), update)
-  .delete(validateSchema(getDetailSchema), remove)
 
 module.exports = router;

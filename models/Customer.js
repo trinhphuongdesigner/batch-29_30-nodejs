@@ -53,6 +53,11 @@ const customerSchema = new Schema(
       unique: [true, 'Email không được trùng'],
     },
     birthday: { type: Date },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
   },
   {
     versionKey: false,
