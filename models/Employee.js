@@ -64,11 +64,11 @@ const employeeSchema = new Schema(
       default: true,
       required: true,
     },
-    roles: {
-      type: Array,
-      default: [],
-    },
-    isBlocked: {
+    // roles: {
+    //   type: Array,
+    //   default: [],
+    // },
+    isDeleted: {
       type: Boolean,
       default: false,
       required: true,

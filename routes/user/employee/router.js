@@ -20,7 +20,7 @@ const {
   remove,
   update,
 } = require('./controller');
-const allowRoles = require('../../../middle-wares/checkRole');
+const allowRoles = require('../../../middleWares/checkRole');
 
 router.route('/:id')
   .get(validateSchema(getDetailSchema), getDetail);

@@ -43,7 +43,7 @@ const supplierSchema = new Schema(
       type: String,
       maxLength: [500, 'Địa chỉ không được vượt quá 500 ký tự'],
     },
-    isBlocked: {
+    isDeleted: {
       type: Boolean,
       default: false,
       required: true,
