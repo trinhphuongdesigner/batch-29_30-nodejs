@@ -26,6 +26,11 @@ const productSchema = Schema(
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
     // Reference to Supplier
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: true },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
   },
   {
     versionKey: false,

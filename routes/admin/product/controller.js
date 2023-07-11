@@ -37,6 +37,7 @@ module.exports = {
 
   createProduct: async function (req, res, next) {
     try {
+      console.log('««««« req.body »»»»»', req.body);
       const data = req.body;
 
       const { categoryId, supplierId } = data;

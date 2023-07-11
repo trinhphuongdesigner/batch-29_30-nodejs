@@ -1,19 +1,19 @@
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const LocalStrategy = require('passport-local').Strategy;
+const BasicStrategy = require('passport-http').BasicStrategy;
 
 const jwtSettings = require('../constants/jwtSetting');
-const { Employee } = require('../models');
+const { Customer } = require('../models');
 
-const passportConfigAdmin = new JwtStrategy(
+const passportConfigUser = new JwtStrategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken('Authorization'),
-    secretOrKey: jwtSettings.ADMIN_SECRET,
+    secretOrKey: jwtSettings.USER_SECRET,
   },
   async (payload, done) => {
-    console.log('««««« admin »»»»»');
     try {
-      const user = await Employee.findById(payload._id).select('-password');
+      const user = await Customer.findById(payload._id).select('-password');
 
       if (!user) return done(null, false);
 
@@ -24,14 +24,13 @@ const passportConfigAdmin = new JwtStrategy(
   },
 );
 
-const passportConfigLocalAdmin = new LocalStrategy(
+const passportConfigLocalUser = new LocalStrategy(
   {
     usernameField: 'email',
   },
   async (email, password, done) => {
     try {
-      console.log('««««« admin »»»»»');
-      const user = await Employee.findOne({ email });
+      const user = await Customer.findOne({ email });
 
       if (!user) return done(null, false);
 
@@ -47,6 +46,6 @@ const passportConfigLocalAdmin = new LocalStrategy(
 );
 
 module.exports = {
-  passportConfigAdmin,
-  passportConfigLocalAdmin,
+  passportConfigUser,
+  passportConfigLocalUser,
 };

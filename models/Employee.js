@@ -64,10 +64,15 @@ const employeeSchema = new Schema(
       default: true,
       required: true,
     },
-    roles: {
-      type: Array,
-      default: [],
-    }
+    // roles: {
+    //   type: Array,
+    //   default: [],
+    // },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
   },
   {
     versionKey: false,

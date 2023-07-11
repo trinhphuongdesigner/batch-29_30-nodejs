@@ -4,7 +4,7 @@ const router = express.Router();
 const multer = require('multer');
 
 // MULTER UPLOAD
-const upload = require('../../middle-wares/fileMulter');
+const upload = require('../../middleWares/fileMulter');
 
 const {
   updateDocument,
