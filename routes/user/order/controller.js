@@ -70,6 +70,11 @@ module.exports = {
 
       let result = await newItem.save();
 
+      // const productsId = result.orderDetails.map((i) => ({id: i.productId, quantity: i.quantity }))
+
+      // Xử lý giảm số sản phẩm tương ứng trong kho
+      // updateMany
+
       return res.send({
         code: 200,
         message: 'Tạo thành công',
