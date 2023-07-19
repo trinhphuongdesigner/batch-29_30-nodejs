@@ -40,11 +40,24 @@ module.exports = {
         conditionFind.price ={$lte : parseFloat(priceEnd)};
       }
 
-      const conditionSort = {
-        createdAt: -1
-      };
+      const conditionSort = {};
 
-      console.log('««««« conditionFind »»»»»', conditionFind);
+      switch (order) {
+        case 1:
+          conditionSort.createdAt = 1
+          break;
+        case 2:
+          conditionSort.price = 1
+          break;
+        case 3:
+          conditionSort.price = -1
+          break;
+      
+        default:
+          conditionSort.createdAt = -1
+          break;
+      }
+
       const results = await Product.find(conditionFind)
         .populate('category')
         .populate('supplier')
