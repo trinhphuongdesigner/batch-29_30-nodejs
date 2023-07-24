@@ -18,6 +18,14 @@ const mediaRouter = require('./routes/media/router');
 const adminRoutes = require('./routes/admin/routes');
 const userRouter = require('./routes/user/routes');
 
+const {
+  passportConfigAdmin,
+  passportConfigLocalAdmin,
+} = require('./middleWares/passportAdmin');
+
+passport.use('jwtAdmin', passportConfigAdmin);
+passport.use('localAdmin', passportConfigLocalAdmin);
+
 const app = express();
 
 app.set('views', path.join(__dirname, 'views'));
@@ -42,7 +50,8 @@ app.use('/', indexRouter);
 app.use('/questions', questionRouter);
 app.use('/media', passport.authenticate('jwt', { session: false }), mediaRouter);
 
-app.use('/admin', adminRoutes)
+app.use('/admin', passport.authenticate('jwtAdmin', { session: false }), adminRoutes)
+
 app.use('/user', userRouter)
 
 // catch 404 and forward to error handler
