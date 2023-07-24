@@ -48,7 +48,7 @@ mongoose.connect(CONNECTION_STRING);
 
 app.use('/', indexRouter);
 app.use('/questions', questionRouter);
-app.use('/media', passport.authenticate('jwt', { session: false }), mediaRouter);
+app.use('/media', passport.authenticate('jwtAdmin', { session: false }), mediaRouter);
 
 app.use('/admin', passport.authenticate('jwtAdmin', { session: false }), adminRoutes)
 
