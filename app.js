@@ -50,7 +50,7 @@ app.use('/', indexRouter);
 app.use('/questions', questionRouter);
 app.use('/media', passport.authenticate('jwtAdmin', { session: false }), mediaRouter);
 
-app.use('/admin', passport.authenticate('jwtAdmin', { session: false }), adminRoutes)
+app.use('/admin', adminRoutes)
 
 app.use('/user', userRouter)
 

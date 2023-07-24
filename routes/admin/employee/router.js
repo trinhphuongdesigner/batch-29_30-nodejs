@@ -45,10 +45,7 @@ router.route('/profile') // Đối tượng cần kiểm tra là token có hợp
 
 router.route('/')
   .get(
-    passport.authenticate('jwtAdmin', { session: false }),
-    // allowRoles('GET_ALL_EMPLOYEE'),
-    getAll,
-    )
+    passport.authenticate('jwtAdmin', { session: false })/* allowRoles('GET_ALL_EMPLOYEE')*/, getAll,)
   .post(validateSchema(createSchema), create)
 
 router.route('/:id')
